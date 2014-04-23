@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>RakeOE by rakeoe</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>RakeOE</h1>
+        <h2>Rake Optimized for Embedded. A build system for test driven Embedded C/C++ Development</h2>
+        <a href="https://github.com/rakeoe/RakeOE" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="rake-optimized-for-embedded" class="anchor" href="#rake-optimized-for-embedded"><span class="octicon octicon-link"></span></a>Rake Optimized for Embedded</h1>
+
+<p><strong>A build system for test driven Embedded C/C++ Development based on Ruby rake</strong></p>
+
+<p>RakeOE is a build system for application development. It can parse OpenEmbedded / Yocto environment files.<br>
+In this way it knows how to cross compile in whatever target platform the cross compiler builds.<br>
+It uses automatically the appropriate include paths and libraries of the given platform.<br>
+If not otherwise specified, it uses the native toolchain of the host platform.<br></p>
+
+<p>RakeOE uses a <em>convention over configuration</em> paradigm to enable a fast jump start for developers.<br>
+E.g. it assumes that the project follows a certain directory hierarchy or how sub projects are organized.<br>
+Moreover it bundles the unit test framework CppUTest to enable TDD.</p>
+
+<p>It is possible to override these default settings, though one can get a long way without doing so.<br>
+More of that below.</p>
+
+<h2>
+<a name="prerequisites" class="anchor" href="#prerequisites"><span class="octicon octicon-link"></span></a>Prerequisites</h2>
+
+<h3>
+<a name="os" class="anchor" href="#os"><span class="octicon octicon-link"></span></a>OS</h3>
+
+<p>At minimum a Unix-flavored OS is required. E.g. Linux, OS-X, SUN OS, etc.<br></p>
+
+<p>For the time beeing, <strong>gcc</strong> or a gcc-compatible compiler like <strong>clang</strong> or <strong>icc</strong> is required.<br>
+If one wants to cross compile for other target platforms via Yocto/OpenEmbedded, Linux is a must.<br>
+RakeOE has been tested on Ubunu 12.04. It should run on other Linux distros as well. </p>
+
+<p>It is also possible to run RakeOE on windows. One has to create a new toolchain definition in rake/toolchain and make path styles Windows-compatible.</p>
+
+<h3>
+<a name="gcc-compatiple-compiler" class="anchor" href="#gcc-compatiple-compiler"><span class="octicon octicon-link"></span></a>Gcc compatiple compiler</h3>
+
+<p>Besides compilation, gcc is used e.g. for header file dependency generation or platform information.</p>
+
+<h3>
+<a name="ruby" class="anchor" href="#ruby"><span class="octicon octicon-link"></span></a>Ruby</h3>
+
+<p>RakeOE is based on Rake. Rake comes bundled with Ruby. Therefore you should have installed a recent <a href="http://www.ruby-lang.org/en/" title="[Latest Ruby">Ruby version</a> on your development machine.<br>
+Recommended is <strong>Ruby &gt;= 1.9.3</strong>.</p>
+
+<h3>
+<a name="openembedded--yocto" class="anchor" href="#openembedded--yocto"><span class="octicon octicon-link"></span></a>OpenEmbedded / Yocto</h3>
+
+<p>If you want to use RakeOE for cross development, you should also have some flavour of OpenEmbedded installed on your host platform.<br>
+RakeOE has been tested with <a href="http://www.denx.de/wiki/ELDK-5/" title="[ELDK-5.3/Yocto Danny">ELDK-5.3/Yocto Danny</a> but other OpenEmbedded based toolchains should work similarly well.<br>
+If you only want to use RakeOE for native development, this is not needed.</p>
+
+<h2>
+<a name="additional-features" class="anchor" href="#additional-features"><span class="octicon octicon-link"></span></a>Additional Features</h2>
+
+<h3>
+<a name="subproject-autodiscovery" class="anchor" href="#subproject-autodiscovery"><span class="octicon octicon-link"></span></a>Subproject autodiscovery</h3>
+
+<p>Any subdirectory inside the configured source directories will be scanned for a <strong>prj.rake</strong> file. This file contains standardized settings<br>
+for building libraries or applications and defining dependencies. Any subproject that has such a prj.rake file will be automatically<br>
+picked up for building.</p>
+
+<h3>
+<a name="qt" class="anchor" href="#qt"><span class="octicon octicon-link"></span></a>Qt</h3>
+
+<p>RakeOE has built-in support for Qt. It will automatically parse header files in Qt enabled sub projects and run the moc compiler <br>
+on them if a <strong>Q_OBJECT</strong> declaration is encountered.</p>
+
+<h3>
+<a name="subproject-specific-settings" class="anchor" href="#subproject-specific-settings"><span class="octicon octicon-link"></span></a>Subproject specific settings</h3>
+
+<p>Here is an overview of the settings that can be specified in the subprojects <strong>prj.rake</strong> file.<br>
+See the documentation of each setting for explanations.</p>
+
+<pre><code># Project type, possible values are APP for applications, LIB for static libraries,
+# SOLIB for shared objects and DISABLED if this project should be excluded from building.
+PRJ_TYPE = 'DISABLED'
+
+# Additional white space separated list of sub directories this project uses for finding source files.
+# By default only sources in the projects top directory will be used for compilation.
+ADD_SOURCE_DIRS = ''
+
+# White space separated list of ignored source files. These will be excluded from compilation.
+IGNORED_SOURCES = ''
+
+# Additional white space separated list of sub directories this project uses for finding includes.
+# By default the subdirectory 'include/' is always supposed.
+ADD_INC_DIRS = ''
+
+# White space separated list of test source directories.
+TEST_SOURCE_DIRS = ''
+
+# Additional white space separated list of CFLAGS. Used for all platforms.
+# E.g. '-O3 -Wextra'
+ADD_CFLAGS = ''
+
+# Additional white space separated list of CXXFLAGS. Used for all platforms.
+# E.g. '-O3 -Wextra'
+ADD_CXXFLAGS = ''
+
+# Additional white space separated list of libraries this project depends on. These can be either libraries provided
+# from other subprojects or external libraries. In case of the former the include/ directory of that library
+# is used for compilation as well. Used for all platforms.
+# e.g. 'pthread rt m'
+ADD_LIBS = ''
+
+# Additional white space separated list of linker flags. Used for all platforms.
+ADD_LDFLAGS = ''
+
+# Set to 1 if you need Qt support. If enabled, all header files will be parsed for the
+# declaration of the keyword Q_OBJECT and if found used as input for the moc compiler.
+# By default QtCore and QtNetwork libs are enabled. If you need more Qt libraries,
+# place them in ADD_LIBS variable.
+USE_QT = 0
+
+# White space separated list of ignored platforms, i.e. platforms this project will _not_ be compiled for.
+# Possible values depend on your toolchain.
+# E.g. 'arm-linux-gnueabi i686-linux-gnu'
+IGNORED_PLATFORMS = ''
+</code></pre>
+
+<h3>
+<a name="pass-version-string" class="anchor" href="#pass-version-string"><span class="octicon octicon-link"></span></a>Pass Version String</h3>
+
+<p>You can pass a version string to all compiled files via environment variable SW_VERSION_ENV. The content of this environment
+variable is passed to the build in CFLAGS/CXXFLAGS as -DPROGRAM_VERSION.
+The default value in case no such environment variable is present is "unversioned".</p>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage:</h2>
+
+<pre><code>rake &lt;target&gt; &lt;TOOLCHAIN_ENV=filename&gt; &lt;RELEASE=1&gt;
+</code></pre>
+
+<p>Use <strong><code>rake all</code></strong><br>
+to compile all applications and libraries</p>
+
+<p>Use <strong><code>rake app:all</code></strong><br>
+to compile only applications</p>
+
+<p>Use <strong><code>rake lib:all</code></strong><br>
+to compile only libraries</p>
+
+<p>Use <strong><code>rake test</code></strong><br>
+to execute all unit tests for applications/libraries</p>
+
+<p>Use <strong><code>rake -T</code></strong><br>
+for a list of important targets with explanation.</p>
+
+<p>Use <strong><code>rake -T -A</code></strong><br>
+for a list of all possible targets.</p>
+
+<p>If no parameter given, <strong><code>rake all</code></strong> is assumed and the native compiler of the host system is used.<br>
+Furthermore without any parameters, no compiler optimization settings are enabled.</p>
+
+<p>If <strong><code>RELEASE</code></strong> is set to any value, compilation is executed with optimizations <strong>and</strong> debugging set to on.</p>
+
+<p>By setting the variable <strong><code>TOOLCHAIN_ENV</code></strong>, the native toolchain settings can be overwritten with the environment file.<br>
+from OpenEmbedded. This file is parsed by RakeOE and configures the specific toolchain settings.</p>
+
+<h2>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples:</h2>
+
+<ol>
+<li>
+<pre><code>`rake`&lt;br/&gt;
+</code></pre>
+
+<p>Uses the native host toolchain as defined in rake/toolchain/environment-setup-native-linux-gnu</p>
+</li>
+<li>
+<pre><code>`rake all RELEASE=1`&lt;br/&gt;
+</code></pre>
+
+<p>Same as above but a release build will be triggered</p>
+</li>
+<li>
+<pre><code>`rake all TOOLCHAIN_ENV=/data/eldk-5.3/nitrogen/environment-setup-armv7a-vfp-neon-linux-gnueabi`&lt;br/&gt;
+</code></pre>
+
+<p>Cross compiles in debug mode with the cross compiler definitions found in provided ELDK-5.3 environment
+   file.<br>In this particular case it would cross compile with the armv7a-vfp-neon gcc of a 5.3 ELDK</p>
+</li>
+</ol><h2>
+<a name="shell-autocompletion-for-rake" class="anchor" href="#shell-autocompletion-for-rake"><span class="octicon octicon-link"></span></a>Shell autocompletion for rake:</h2>
+
+<p>If you'd like to save on key presses when trying to find out which rake task to run, add bash autocompletion for rake tasks like this:</p>
+
+<ol>
+<li> download <a href="https://github.com/mernen/completion-ruby/blob/master/completion-rake">https://github.com/mernen/completion-ruby/blob/master/completion-rake</a>
+</li>
+<li> copy downloaded file to /etc/bash_completion.d/rake</li>
+</ol><hr><h2>
+<a name="defaults" class="anchor" href="#defaults"><span class="octicon octicon-link"></span></a>Defaults:</h2>
+
+<h3>
+<a name="directory-layout" class="anchor" href="#directory-layout"><span class="octicon octicon-link"></span></a>Directory layout</h3>
+
+<p>The build systems assumes a directory layout similar to this:</p>
+
+<pre><code>project-root
+    ├── build
+    │   └── &lt;platform&gt;
+    │       ├── dbg
+    │       │   ├── apps
+    │       │   └── libs
+    │       └── release
+    │           ├── apps
+    │           └── libs
+    ├── rake
+    ├── Rakefile
+    └── src
+        ├── 3rdparty
+        │   └── CppUTest
+        │       └── prj.rake
+        ├── app
+        │   └── appA
+        │       └── prj.rake
+        └── lib
+            └── libB
+                └── prj.rake
+</code></pre>
+
+<h4>
+<a name="build" class="anchor" href="#build"><span class="octicon octicon-link"></span></a>build/</h4>
+
+<p>The build sub directory contains all build artefacts. <code>&lt;platform&gt;</code> is the platform specific build directory. For each unique platform a new build<br>
+directory is created. Inside those directories the directories <code>dbg</code> and <code>release</code> are created, depending on if you<br>
+started a debug or a release build.<br>
+Directly therunder the directories <code>apps/</code> and <code>libs/</code> can be found in which either application or library binaries are built.<br></p>
+
+<p>Whenever you start a build with a different build configuration of either platform or debug mode, instead of overwriting<br>
+binaries from the previous build configuration a separate new directory is used.<br></p>
+
+<p>The build directory setting can be changed via Rakefile.<br></p>
+
+<h4>
+<a name="rake" class="anchor" href="#rake"><span class="octicon octicon-link"></span></a>rake/</h4>
+
+<p>In this directory most build system relevant files and classes can be found. Most are internal and typically will not<br>
+be changed by the user.</p>
+
+<h4>
+<a name="rakefile" class="anchor" href="#rakefile"><span class="octicon octicon-link"></span></a>Rakefile</h4>
+
+<p>This file is the main Rakefile and will be automatically parsed by Rake. You can do configuration changes here like setting<br>
+paths of source/build directories, file suffix assignments, etc.</p>
+
+<h4>
+<a name="src" class="anchor" href="#src"><span class="octicon octicon-link"></span></a>src/</h4>
+
+<p>The RakeOE build system knows the build primitives <em>library</em> and <em>application</em>. It expects libraries and<br>
+applications to be in separate source directories.<br></p>
+
+<p>By default these are in <code>src/lib</code> and <code>src/app</code>. The directory <code>src/3rdparty/</code> is treated by RakeOE as a normal library<br>
+directory and is meant as structural separation between 3rd party components that are not part of the platform SDK and<br>
+project specific libraries in <code>src/lib</code>.<br>
+By default <code>src/3rdparty/CppUTest</code> comes bundled with RakeOE as the default unit test framework.<br>
+The directory <code>src/app/appA</code> contains some user application project and <code>src/lib/libB</code> some user library project.<br>
+As mentioned above all those projects beneath <code>src/</code> have to contain a <code>prj.rake</code> file.</p>
+
+<p>The source directory setting can be changed via Rakefile.<br></p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/rakeoe/RakeOE/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/rakeoe/RakeOE/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/rakeoe/RakeOE"></a> is maintained by <a href="https://github.com/rakeoe">rakeoe</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
