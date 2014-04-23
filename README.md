@@ -202,7 +202,6 @@ applications to be in separate source directories.<br/>
 By default these are in `src/lib` and `src/app`. The directory `src/3rdparty/` is treated by RakeOE as a normal library<br/>
 directory and is meant as structural separation between 3rd party components that are not part of the platform SDK and<br/>
 project specific libraries in `src/lib`.<br/>
-By default `src/3rdparty/CppUTest` comes bundled with RakeOE as the default unit test framework.<br/>
 The directory `src/app/appA` contains some user application project and `src/lib/libB` some user library project.<br/>
 As mentioned above all those projects beneath `src/` have to contain a `prj.rake` file.
 

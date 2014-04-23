@@ -75,10 +75,10 @@ module RakeOE
       load_deps(@deps)
       load_deps(@test_deps)
 
-      unless (@settings['TEST_FRAMEWORK'].nil? or @settings['TEST_FRAMEWORK'].empty?)
-        @test_fw = @tc.test_framework(@settings['TEST_FRAMEWORK'])
+      if (@settings['TEST_FRAMEWORK'].nil? or @settings['TEST_FRAMEWORK'].empty?)
+        @test_fw = @tc.default_test_framework        
       else
-        @test_fw = @tc.default_test_framework
+        @test_fw = @tc.test_framework(@settings['TEST_FRAMEWORK'])
       end
 
       @test_binary =  "#{bin_dir}/#{name}-test"

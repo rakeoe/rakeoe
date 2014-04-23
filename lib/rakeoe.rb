@@ -3,6 +3,7 @@ require 'rake'
 require 'rake/dsl_definition'
 require 'rake/clean'
 
+require 'rakeoe/config'
 require 'rakeoe/version'
 require 'rakeoe/defaults'
 require 'rakeoe/key_value_reader'
@@ -19,15 +20,19 @@ module RakeOE
   # Initialize RakeOE project. Reads & parses all prj.rake files
   # in given directories. If no directories provided assumes default
   # project layout.
-  def init(directories = RakeOE::DEFAULT_DIRS, suffices = RakeOE::DEFAULT_SUFFICES)
+  def init(directories = RakeOE::Config.directories,
+           suffices = RakeOE::Config.suffices,
+           platform = RakeOE::Config.platform)
 
+puts "directories: #{directories}, suffices: #{suffices}, platform: #{platform}"
     RakeOE::PrjFileCache.sweep_recursive(directories[:apps] + directories[:libs])
 
-    tool = RakeOE::Toolchain.new(:platform => ENV['TOOLCHAIN_ENV'],
-                                 :release => ENV['RELEASE'] ? 'release' : 'dbg',
-                                 :sw_version => ENV['SW_VERSION_ENV'],
+    platform = ENV['TOOLCHAIN_ENV'] unless ENV['TOOLCHAIN_ENV'].nil?
+    tool = RakeOE::Toolchain.new(:platform => platform,
                                  :directories => directories,
-                                 :file_extensions => suffices)
+                                 :file_extensions => suffices,
+                                 :release => ENV['RELEASE'] ? 'release' : 'dbg',
+                                 :sw_version => ENV['SW_VERSION_ENV'])
     #
     # Top level tasks
     #
@@ -82,10 +87,11 @@ module RakeOE
     task :junit => %w[lib:test:junit app:test:junit]
     task :default => :all
 
-    #
-    # clobber
-    #
-    CLOBBER.include('*.tmp', 'build/*')
+    # sort of mrproper/realclean
+    CLOBBER.include('*.tmp', "#{directories[:build]}/*")
   end
 
 end
+
+include RakeOE
+include RakeOE::Config

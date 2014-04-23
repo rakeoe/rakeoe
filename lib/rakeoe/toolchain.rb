@@ -6,7 +6,7 @@ require 'rakeoe/defaults'
 require 'rakeoe/test_framework'
 
 module RakeOE
-  
+
 #
 # Toolchain specific key value reader
 #
@@ -80,9 +80,7 @@ class Toolchain
                                                     :binary_path  => "#{@settings['LIB_OUT']}/libCUnit.a",
                                                     :include_dir  => PrjFileCache.get('LIB', 'CUnit', 'PRJ_HOME') + '/CUnit/Headers',
                                                     :cflags       => '')
-    end
-
-    if PrjFileCache.contain?('LIB', 'CppUTest')
+    elsif PrjFileCache.contain?('LIB', 'CppUTest')
       @@test_framework['CppUTest'] = TestFramework.new(:name         => 'CppUTest',
                                                        :binary_path  => "#{@settings['LIB_OUT']}/libCppUTest.a",
                                                        :include_dir  => PrjFileCache.get('LIB', 'CppUTest', 'PRJ_HOME') + '/include',
@@ -453,6 +451,10 @@ puts
     libs    = linker_line_for(params[:libs])
 
     sh "#{@settings['CXX']} #{incs} #{objs} #{test_fw} #{ldflags} #{libs} -o #{params[:test]}"
+  end
+
+  def dump
+    @kvr.dump
   end
 
 end
