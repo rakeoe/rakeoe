@@ -1,5 +1,91 @@
-require "rakeoe/version"
 
-module Rakeoe
-  # Your code goes here...
+require 'rake'
+require 'rake/dsl_definition'
+require 'rake/clean'
+
+require 'rakeoe/version'
+require 'rakeoe/defaults'
+require 'rakeoe/key_value_reader'
+require 'rakeoe/toolchain'
+require 'rakeoe/qt_settings'
+require 'rakeoe/lib'
+require 'rakeoe/app'
+require 'rakeoe/prj_file_cache'
+
+module RakeOE
+
+  include Rake::DSL   # for #task, #desc, #namespace
+
+  # Initialize RakeOE project. Reads & parses all prj.rake files
+  # in given directories. If no directories provided assumes default
+  # project layout.
+  def init(directories = RakeOE::DEFAULT_DIRS, suffices = RakeOE::DEFAULT_SUFFICES)
+
+    RakeOE::PrjFileCache.sweep_recursive(directories[:apps] + directories[:libs])
+
+    tool = RakeOE::Toolchain.new(:platform => ENV['TOOLCHAIN_ENV'],
+                                 :release => ENV['RELEASE'] ? 'release' : 'dbg',
+                                 :sw_version => ENV['SW_VERSION_ENV'],
+                                 :directories => directories,
+                                 :file_extensions => suffices)
+    #
+    # Top level tasks
+    #
+    desc 'Dumps toolchain environment variables'
+    task :dump do
+      tool.dump
+    end
+
+    %w[lib app].each do |type|
+      namespace type do
+        # Introduce type:all
+        #
+        # All libs/apps will make themselves dependent on this task, so whenever you call
+        #   'rake lib:all' or 'rake app:all'
+        # all libs/apps will thus be generated automatically
+        desc "Create all #{type}s"
+        task :all
+
+        case type
+        when 'lib'
+          RakeOE::PrjFileCache.for_each('LIB') do |name, settings|
+            RakeOE::Lib.new(name, settings, tool).create
+          end
+
+          RakeOE::PrjFileCache.for_each('SOLIB') do |name, settings|
+            RakeOE::Lib.new(name, settings, tool).create
+          end
+
+        when 'app'
+          RakeOE::PrjFileCache.for_each('APP') do |name, settings|
+            RakeOE::App.new(name, settings, tool).create
+          end
+        else
+          raise "No such type #{type} supported"
+        end
+
+        # Introduce type:test:all
+        #
+        # All tests in lib/app will make themselves dependent on this task, so whenever you call
+        #   'rake lib:test:all'
+        # all available library tests will be generated automatically before execution
+        namespace 'test' do
+          desc "Run all #{type} tests"
+          task :all
+        end
+      end
+    end
+
+    task :all => %w[lib:all app:all]
+    task :test => %w[lib:test:all app:test:all]
+    task :test_build => %w[lib:test:build app:test:build]
+    task :junit => %w[lib:test:junit app:test:junit]
+    task :default => :all
+
+    #
+    # clobber
+    #
+    CLOBBER.include('*.tmp', 'build/*')
+  end
+
 end
