@@ -6,11 +6,11 @@ module RakeOE
   # Base class for all projects that assemble binary data
   class BinaryBase
     include Rake::DSL
+
     attr_reader   :build_dir, :src_dir, :src_dirs, :inc_dirs, :test_dirs, :obj_dirs
 
-    attr_accessor :name, :bin_dir, :test_dir,
-    :settings, :tc, :prj_file, :binary, :objs,
-    :deps, :test_deps, :test_binary, :test_objs
+    attr_accessor :name, :bin_dir, :test_dir, :settings, :tc, :prj_file, :binary, :objs,
+                  :deps, :test_deps, :test_binary, :test_objs
 
     #
     # The following parameters are expected in given hash params:
@@ -157,32 +157,6 @@ module RakeOE
     end
 
 
-    # Returns exported include directories of a library project.
-    # If given name does not exist in local library projects, an empty array
-    # is returned.
-    #
-    # @param  name    name of library
-    #
-    # @return         exported library includes
-    #
-    def exported_lib_incs(name)
-      rv = []
-      # try LIB
-      exported_inc_dirs = PrjFileCache.get('LIB', name, 'EXPORTED_INC_DIRS')
-      if exported_inc_dirs.to_s.empty?
-        # try SOLIB
-        exported_inc_dirs = PrjFileCache.get('SOLIB', name, 'EXPORTED_INC_DIRS')
-        unless exported_inc_dirs.to_s.empty?
-          rv << PrjFileCache.get('SOLIB', name, 'PRJ_HOME') + '/' + dir
-        end
-      else
-        exported_inc_dirs.split.each do |dir|
-          rv << PrjFileCache.get('LIB', name, 'PRJ_HOME') + '/' + dir
-        end
-      end
-      rv
-    end
-
     # Returns list of include directories for name of libraries in parameter libs
     #
     # @param [Array] libs   List of library names
@@ -192,7 +166,7 @@ module RakeOE
     def lib_incs(libs=[])
       includes = Array.new
       libs.each do |name, param|
-        lib_includes = exported_lib_incs(name)
+        lib_includes = PrjFileCache.exported_lib_incs(name)
         includes += lib_includes if lib_includes.any?
       end
       includes

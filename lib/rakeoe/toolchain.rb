@@ -12,30 +12,16 @@ module RakeOE
 #
 # @author Daniel Schnell
 class Toolchain
-  attr_reader  :qt, :settings, :target
+  attr_reader  :qt, :settings, :target, :config
 
   # Initializes object
   #
-  # @param  [Hash] params
-  # @option params [String] :platform         path to the platform build settings file
-  # @option params [String] :release          either of 'release' or 'dbg'
-  # @option params [Hash]   :directories      directories where all sources and builds should be located
-  # @option params [Hash]   :file_extensions  hash of source code file extension mappings
-  #                                           e.g. { cplus_sources:  ['cpp', 'cxx', 'C'] }
-  def initialize(params = {
-                            :platform => DEFAULT_PLATFORM,
-                            :release => DEFAULT_RELEASE,
-                            :directories => DEFAULT_DIRS,
-                            :file_extensions => DEFAULT_EXTENSIONS
-                          })
+  # @param  [RakeOE::Config] config     Project wide configurations
+  #
+  def initialize(config)
+    @config = config
 
-    @dirs = params[:directories]
-    @file_extensions = params[:file_extensions] || DEFAULT_EXTENSIONS
-    @sw_version = params[:sw_version] || 'unversioned'
-    platform_file = params[:platform]
-    platform_file = DEFAULT_PLATFORM if (platform_file.nil? or platform_file.empty?)
-
-    @kvr = KeyValueReader.new(platform_file)
+    @kvr = KeyValueReader.new(config.platform)
     @settings = @kvr.env
     fixup_env
 
@@ -49,7 +35,7 @@ class Toolchain
     @settings['TOUCH'] = 'touch'
     # XXX DS: we should only instantiate @qt if we have any qt settings
     @qt = QtSettings.new(self)
-    set_build_vars(params[:release])
+    set_build_vars()
 
     init_test_frameworks
     sanity
@@ -58,42 +44,51 @@ class Toolchain
 
   # Do some sanity checks
   def sanity
-    raise 'No directory parameters given' if @dirs.nil?
-
     # TODO DS: check if libs and apps directories exist
     # TODO DS: check if test frameworks exist
   end
 
   # returns the build directory
   def build_dir
-    @dirs[:build]
+    @config.directories[:build]
   end
 
 
-  # Initializes list of known test frameworks.
+  # Initializes definitions for test framework
+  # TODO: Add possibility to configure test framework specific CFLAGS/CXXFLAGS
   def init_test_frameworks()
     @@test_framework ||= Hash.new
 
-    # XXX DS: Too much information about test frameworks ...
-    if PrjFileCache.contain?('LIB', 'CUnit')
-      @@test_framework['CUnit'] = TestFramework.new(:name         => 'CUnit',
-                                                    :binary_path  => "#{@settings['LIB_OUT']}/libCUnit.a",
-                                                    :include_dir  => PrjFileCache.get('LIB', 'CUnit', 'PRJ_HOME') + '/CUnit/Headers',
-                                                    :cflags       => '')
-    elsif PrjFileCache.contain?('LIB', 'CppUTest')
-      @@test_framework['CppUTest'] = TestFramework.new(:name         => 'CppUTest',
-                                                       :binary_path  => "#{@settings['LIB_OUT']}/libCppUTest.a",
-                                                       :include_dir  => PrjFileCache.get('LIB', 'CppUTest', 'PRJ_HOME') + '/include',
-                                                       :cflags       => ' -DCPPUTEST_USE_MEM_LEAK_DETECTION=N ')
+    config_empty_test_framework
+
+    if @config.test_fw.size > 0
+      if PrjFileCache.contain?('LIB', @config.test_fw)
+        @@test_framework[@config.test_fw] = TestFramework.new(:name         => @config.test_fw,
+                                                              :binary_path  => "#{@settings['LIB_OUT']}/lib#{@config.test_fw}.a",
+                                                              :include_dir  => PrjFileCache.exported_lib_incs(@config.test_fw),
+                                                              :cflags       => '')
+      else
+          puts "WARNING: Configured test framework (#{@config.test_fw}) does not exist in project!"
+      end
     end
   end
 
-  # Returns default test framework
-  def default_test_framework
-    test_framework(DEFAULT_TEST_FW)
+  # Configures empty test framework
+  def config_empty_test_framework
+    @@test_framework[''] = TestFramework.new(:name         => '',
+                                             :binary_path  => '',
+                                             :include_dir  => '',
+                                             :cflags       => '')
+
   end
 
-  # Returns definitions of specific test framework
+  # Returns default test framework or nil if none defined
+  def default_test_framework
+    test_framework(@config.test_fw) || test_framework('')
+  end
+
+  # Returns definitions of specific test framework or none if
+  # specified test framework doesn't exist
   def test_framework(name)
     @@test_framework[name]
   end
@@ -115,17 +110,17 @@ class Toolchain
 
   # returns c++ source extensions
   def cpp_source_extensions
-    (@file_extensions[:cplus_sources] + [@file_extensions[:moc_source]]).uniq
+    (@config.suffixes[:cplus_sources] + [@config.suffixes[:moc_source]]).uniq
   end
 
   # returns c source extensions
   def c_source_extensions
-    @file_extensions[:c_sources].uniq
+    @config.suffixes[:c_sources].uniq
   end
 
   # returns assembler source extensions
   def as_source_extensions
-    @file_extensions[:as_sources].uniq
+    @config.suffixes[:as_sources].uniq
   end
 
   # returns all source extensions
@@ -135,22 +130,22 @@ class Toolchain
 
   # returns c++ header extensions
   def cpp_header_extensions
-    (@file_extensions[:cplus_headers] + [@file_extensions[:moc_header]]).uniq
+    (@config.suffixes[:cplus_headers] + [@config.suffixes[:moc_header]]).uniq
   end
 
   # returns c header extensions
   def c_header_extensions
-    @file_extensions[:c_headers].uniq
+    @config.suffixes[:c_headers].uniq
   end
 
   # returns moc header extensions
   def moc_header_extension
-    @file_extensions[:moc_header]
+    @config.suffixes[:moc_header]
   end
 
   # returns c++ header extensions
   def moc_source
-    @file_extensions[:moc_source]
+    @config.suffixes[:moc_source]
   end
 
   # Specific fixups for toolchain
@@ -165,8 +160,8 @@ class Toolchain
     @settings['ARCH'] = "#{@settings['TARGET_PREFIX']}".chop
 
     # remove optimizations, we set these explicitly
-    @settings['CXXFLAGS'] = "#{@settings['CXXFLAGS']} -DPROGRAM_VERSION=\\\"#{@sw_version}\\\"".gsub('-O2', '')
-    @settings['CFLAGS'] = "#{@settings['CFLAGS']} -DPROGRAM_VERSION=\\\"#{@sw_version}\\\"".gsub('-O2', '')
+    @settings['CXXFLAGS'] = "#{@settings['CXXFLAGS']} -DPROGRAM_VERSION=\\\"#{@config.sw_version}\\\"".gsub('-O2', '')
+    @settings['CFLAGS'] = "#{@settings['CFLAGS']} -DPROGRAM_VERSION=\\\"#{@config.sw_version}\\\"".gsub('-O2', '')
     KeyValueReader.substitute_dollar_symbols!(@settings)
   end
 
@@ -174,12 +169,12 @@ class Toolchain
   # Set common build variables
   #
   # @param [String] release_mode   Release mode used for the build, either 'release' or 'dbg'
-  def set_build_vars(release_mode)
+  def set_build_vars()
     warning_flags = ' -W -Wall'
-    if 'release' == release_mode
-      optimization_flags = " #{DEFAULT_OPTIMIZATION_RELEASE} -DRELEASE"
+    if 'release' == @config.release
+      optimization_flags = " #{@config.optimization_release} -DRELEASE"
     else
-      optimization_flags = " #{DEFAULT_OPTIMIZATION_DEBUG} -g"
+      optimization_flags = " #{@config.optimization_dbg} -g"
     end
 
     # we could make these also arrays of source directories ...
@@ -187,7 +182,7 @@ class Toolchain
     @settings['LIB_SRC_DIR'] = 'src/lib'
 
     # derived settings
-    @settings['BUILD_DIR'] = "#{build_dir}/#{@target}/#{release_mode}"
+    @settings['BUILD_DIR'] = "#{build_dir}/#{@target}/#{@config.release}"
     @settings['LIB_OUT'] = "#{@settings['BUILD_DIR']}/libs"
     @settings['APP_OUT'] = "#{@settings['BUILD_DIR']}/apps"
     @settings['SYS_LFLAGS'] = "-L#{@settings['OECORE_TARGET_SYSROOT']}/lib -L#{@settings['OECORE_TARGET_SYSROOT']}/usr/lib"
@@ -196,8 +191,8 @@ class Toolchain
     @settings['LD_LIBRARY_PATH'] = @settings['LIB_OUT']
 
     # standard settings
-    @settings['CXXFLAGS'] += warning_flags + optimization_flags + " #{DEFAULT_LANGUAGE_STANDARD_CPP}"
-    @settings['CFLAGS'] += warning_flags + optimization_flags + " #{DEFAULT_LANGUAGE_STANDARD_C}"
+    @settings['CXXFLAGS'] += warning_flags + optimization_flags + " #{@config.language_std_cpp}"
+    @settings['CFLAGS'] += warning_flags + optimization_flags + " #{@config.language_std_c}"
     if @settings['PRJ_TYPE'] == 'SOLIB'
       @settings['CXXFLAGS'] += ' -fPIC'
       @settings['CFLAGS'] += ' -fPIC'

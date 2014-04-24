@@ -14,6 +14,10 @@ module RakeOE
     # Introduce hash of projects. Contains list of project with key 'PRJ_TYPE'
     @prj_list = {}
 
+    #
+    # GENERIC METHODS
+    #
+
     # Search, read and parse all project files in given directories and add them to prj_list according
     # to their PRJ_TYPE setting.
     # @param dirs   List of directories to search recursively for prj.rake files
@@ -79,5 +83,37 @@ module RakeOE
       return unless @prj_list.has_key?(prj_type)
       @prj_list[prj_type].each_pair &block
     end
+
+    #
+    # SEMANTIC METHODS
+    #
+    
+    # Returns exported include directories of a library project.
+    # If given name does not exist in local library projects, an empty array
+    # is returned.
+    #
+    # @param  name    name of library
+    #
+    # @return         exported library includes
+    #
+    def self.exported_lib_incs(name)
+      rv = []
+      # try LIB
+      exported_inc_dirs = self.get('LIB', name, 'EXPORTED_INC_DIRS')
+      if exported_inc_dirs.to_s.empty?
+        # try SOLIB
+        exported_inc_dirs = self.get('SOLIB', name, 'EXPORTED_INC_DIRS')
+        unless exported_inc_dirs.to_s.empty?
+          rv << self.get('SOLIB', name, 'PRJ_HOME') + '/' + dir
+        end
+      else
+        exported_inc_dirs.split.each do |dir|
+          rv << self.get('LIB', name, 'PRJ_HOME') + '/' + dir
+        end
+      end
+      rv
+    end
+
+
   end
 end

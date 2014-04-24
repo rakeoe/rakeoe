@@ -3,8 +3,9 @@
 module RakeOE
   # Project wide defaults that will be used for configuration. Configuration can be overridden via Rakefile.
 
-  # A list of default file extensions used for the project
-  DEFAULT_SUFFICES = {
+  # A list of default file extensions used for the project.
+  # This has to match the format as described for RakeOE::Config.suffixes
+  DEFAULT_SUFFIXES = {
     :as_sources => %w[.S .s],
     :c_sources => %w[.c],
     :c_headers => %w[.h],
@@ -28,15 +29,17 @@ module RakeOE
   DEFAULT_RELEASE = 'dbg'
 
   # Default test framework used for linking test case binaries
-  DEFAULT_TEST_FW = 'CppUTest'
+  DEFAULT_TEST_FW = ''
 
   # Default optimization levels used for compiling binaries
-  DEFAULT_OPTIMIZATION_DEBUG    = '-O0'
+  DEFAULT_OPTIMIZATION_DBG      = '-O0'
   DEFAULT_OPTIMIZATION_RELEASE  = '-O3'
 
   # Default language standards
-  DEFAULT_LANGUAGE_STANDARD_C   = '-std=gnu99'
-  DEFAULT_LANGUAGE_STANDARD_CPP = '-std=c++03'
+  DEFAULT_LANGUAGE_STD_C   = '-std=gnu99'
+  DEFAULT_LANGUAGE_STD_CPP = '-std=c++03'
 
+  # Default software version string
+  DEFAULT_SW_VERSION = 'unversioned'
 end
 

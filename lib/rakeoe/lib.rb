@@ -40,7 +40,7 @@ module RakeOE
         :settings => @settings)
       end
 
-      if test_objs.any?
+      if test_objs.any? && (tc.config.test_fw.size > 0)
         create_test_rules()
       end
 

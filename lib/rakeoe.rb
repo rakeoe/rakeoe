@@ -18,29 +18,19 @@ module RakeOE
   include Rake::DSL   # for #task, #desc, #namespace
 
   # Initialize RakeOE project. Reads & parses all prj.rake files
-  # in given directories. If no directories provided assumes default
-  # project layout.
-  def init(directories = RakeOE::Config.directories,
-           suffices = RakeOE::Config.suffices,
-           platform = RakeOE::Config.platform)
+  # of given config.
+  #
+  # @param config [RakeOE::Config]      Configuration as provided by project Rakefile
+  #
+  def init(config)
 
-puts "directories: #{directories}, suffices: #{suffices}, platform: #{platform}"
-    RakeOE::PrjFileCache.sweep_recursive(directories[:apps] + directories[:libs])
+    RakeOE::PrjFileCache.sweep_recursive(config.directories[:apps] + config.directories[:libs])
 
-    platform = ENV['TOOLCHAIN_ENV'] unless ENV['TOOLCHAIN_ENV'].nil?
-    tool = RakeOE::Toolchain.new(:platform => platform,
-                                 :directories => directories,
-                                 :file_extensions => suffices,
-                                 :release => ENV['RELEASE'] ? 'release' : 'dbg',
-                                 :sw_version => ENV['SW_VERSION_ENV'])
+    toolchain = RakeOE::Toolchain.new(config)
+    
     #
     # Top level tasks
     #
-    desc 'Dumps toolchain environment variables'
-    task :dump do
-      tool.dump
-    end
-
     %w[lib app].each do |type|
       namespace type do
         # Introduce type:all
@@ -54,16 +44,16 @@ puts "directories: #{directories}, suffices: #{suffices}, platform: #{platform}"
         case type
         when 'lib'
           RakeOE::PrjFileCache.for_each('LIB') do |name, settings|
-            RakeOE::Lib.new(name, settings, tool).create
+            RakeOE::Lib.new(name, settings, toolchain).create
           end
 
           RakeOE::PrjFileCache.for_each('SOLIB') do |name, settings|
-            RakeOE::Lib.new(name, settings, tool).create
+            RakeOE::Lib.new(name, settings, toolchain).create
           end
 
         when 'app'
           RakeOE::PrjFileCache.for_each('APP') do |name, settings|
-            RakeOE::App.new(name, settings, tool).create
+            RakeOE::App.new(name, settings, toolchain).create
           end
         else
           raise "No such type #{type} supported"
@@ -81,17 +71,24 @@ puts "directories: #{directories}, suffices: #{suffices}, platform: #{platform}"
       end
     end
 
+    desc 'Dumps toolchain environment variables'
+    task :dump do
+      puts
+      config.dump
+      puts
+      toolchain.dump
+      puts
+    end
+  
     task :all => %w[lib:all app:all]
     task :test => %w[lib:test:all app:test:all]
     task :test_build => %w[lib:test:build app:test:build]
     task :junit => %w[lib:test:junit app:test:junit]
     task :default => :all
 
-    # sort of mrproper/realclean
-    CLOBBER.include('*.tmp', "#{directories[:build]}/*")
+    # kind of mrproper/realclean
+    CLOBBER.include('*.tmp', "#{config.directories[:build]}/*")
   end
-
 end
 
 include RakeOE
-include RakeOE::Config
