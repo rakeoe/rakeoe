@@ -333,13 +333,7 @@ class Toolchain
     object    = params[:object]
     source    = params[:source]
     incs      = compiler_incs_for(params[:includes]) + " #{@settings['LIB_INC']}"
-=begin
-puts
-puts "incs for #{object}: #{incs}"
-puts
-puts "params[:includes]:#{params[:includes]}"
-puts
-=end
+
     case
       when cpp_source_extensions.include?(extension)
         flags = @settings['CXXFLAGS'] + ' ' + params[:settings]['ADD_CXXFLAGS']
