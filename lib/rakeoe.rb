@@ -22,6 +22,7 @@ module RakeOE
   #
   # @param config [RakeOE::Config]      Configuration as provided by project Rakefile
   #
+  # @return [RakeOE::Toolchain]         Toolchain object
   def init(config)
 
     RakeOE::PrjFileCache.sweep_recursive(config.directories[:apps] + config.directories[:libs])
@@ -111,6 +112,8 @@ module RakeOE
 
     # kind of mrproper/realclean
     CLOBBER.include('*.tmp', "#{config.directories[:build]}/*")
+
+    toolchain
   end
 end
 
