@@ -8,12 +8,13 @@ Gem::Specification.new do |spec|
   spec.version       = RakeOE::VERSION
   spec.authors       = ["Daniel Schnell"]
   spec.email         = ["dschnell@skerpa.com"]
-  spec.description   = %q{RakeOE : Rake Optimized for Embedded
-                          A build system for test driven Embedded C/C++ Development based on Ruby Rake.
-                          RakeOE is a build system for application development. It can parse OpenEmbedded/Yocto environment files.
-                          In this way it knows how to cross compile in whatever target platform the cross compiler builds.
-                          It uses automatically the appropriate include paths and libraries of the given platform.}
-  spec.summary       = %q{RakeOE : Rake Optimized for Embedded. A build system for test driven Embedded C/C++ Development}
+  spec.description   = %q{Rake Optimized for Embedded: build system for test driven Embedded C/C++ Development based on Ruby Rake.
+                          RakeOE can be used for application and library development on Windows, Mac OSX and Linux.
+                          It uses OpenEmbedded/Yocto compatible platform files to compile in whatever target platform the compiler builds. It is
+                          used for MicroControllers and Linux-flavored systems alike. It's possible to combine multiple platforms in one
+                          common project. RakeOE is easy to use while maintaining strict dependency tracking.
+                         }
+  spec.summary       = %q{Rake Optimized for Embedded: build system for test driven Embedded C/C++ Development based on Ruby Rake.}
   spec.homepage      = "http://rakeoe.github.io/rakeoe/"
   spec.license       = "GPLv3"
 
