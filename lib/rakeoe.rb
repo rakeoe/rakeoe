@@ -71,7 +71,30 @@ module RakeOE
       end
     end
 
-    desc 'Dumps configuration & toolchain variables'
+    desc 'Deploys apps and dynamic objects to deploy_dir/bin, deploy_dir/lib'
+    task :deploy, [:deploy_dir] => :all do |t, args|
+      build_path="#{config.directories[:build]}/#{toolchain.target}/#{config.release}"
+      puts "Copy binaries from #{build_path} => #{args.deploy_dir}"
+      begin
+        FileUtils.mkdir_p("#{args.deploy_dir}/bin")
+        FileUtils.mkdir_p("#{args.deploy_dir}/lib")
+      rescue
+        raise
+      end
+
+      # deploy binaries
+      Dir.glob("#{build_path}/apps/*").each do |file|
+        next if file.end_with?('.bin')
+        FileUtils.cp(file, "#{args.deploy_dir}/bin/#{File.basename(file)}") if File.executable?(file)
+      end
+      # deploy dynamic libraries
+      Dir.glob("#{build_path}/libs/*.so").each do |file|
+        next if file.end_with?('.bin')
+        FileUtils.cp(file, "#{args.deploy_dir}/lib/")
+      end
+    end
+
+    desc 'Dump configuration & toolchain variables'
     task :dump do
       puts
       config.dump
