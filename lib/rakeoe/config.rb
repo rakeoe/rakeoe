@@ -49,7 +49,7 @@ module RakeOE
       #
       # This parameter can be overridden via environment variable RELEASE. If the latter
       # is defined, this configuration variable has the value "release"
-      @release = ENV['RELEASE'].nil? ? 'release' : RakeOE::DEFAULT_RELEASE
+      @release = ENV['RELEASE'].nil? ? RakeOE::DEFAULT_RELEASE : 'release'
 
       # Test framework used for linking test case binaries
       # This takes the name of the test framework that has to be integrated into the project
