@@ -92,13 +92,14 @@ module RakeOE
 
     # Dumps configuration to stdout
     def dump
+      puts 'RakeOE::Config:'
       puts "Directories                 : #{@directories}"
       puts "Suffixes                    : #{@suffixes}"
       puts "Platform                    : #{@platform}"
       puts "Release mode                : #{@release}"
       puts "Test framework              : #{@test_fw}"
-      puts "Optimazion dbg              : #{@optimization_dbg}"
-      puts "Optimazion release          : #{@optimization_release}"
+      puts "Optimization dbg            : #{@optimization_dbg}"
+      puts "Optimization release        : #{@optimization_release}"
       puts "Language Standard for C     : #{@language_std_c}"
       puts "Language Standard for C++   : #{@language_std_cpp}"
       puts "Software version string     : #{@sw_version}"

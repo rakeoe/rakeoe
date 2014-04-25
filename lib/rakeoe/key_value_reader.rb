@@ -156,7 +156,7 @@ class KeyValueReader
 
   # Dumps all parsed variables as debugging aid
   def dump
-    puts "#{@file_name}:"
+    puts "#{@file_name}"
     @env.each_pair do |key, value|
       puts "[#{key}]: #{value}"
     end

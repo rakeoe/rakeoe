@@ -71,7 +71,7 @@ module RakeOE
       end
     end
 
-    desc 'Dumps toolchain environment variables'
+    desc 'Dumps configuration & toolchain variables'
     task :dump do
       puts
       config.dump

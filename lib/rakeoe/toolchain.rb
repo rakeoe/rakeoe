@@ -467,6 +467,7 @@ puts
   end
 
   def dump
+    print "Platform configuration: "
     @kvr.dump
   end
 
