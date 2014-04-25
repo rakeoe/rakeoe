@@ -68,7 +68,7 @@ class Toolchain
 
   # returns the build directory
   def build_dir
-    @config.directories[:build]
+    "#{@config.directories[:build]}/#{@target}/#{@config.release}"
   end
 
 
@@ -200,7 +200,7 @@ class Toolchain
     @settings['LIB_SRC_DIR'] = 'src/lib'
 
     # derived settings
-    @settings['BUILD_DIR'] = "#{build_dir}/#{@target}/#{@config.release}"
+    @settings['BUILD_DIR'] = "#{build_dir}"
     @settings['LIB_OUT'] = "#{@settings['BUILD_DIR']}/libs"
     @settings['APP_OUT'] = "#{@settings['BUILD_DIR']}/apps"
     @settings['SYS_LFLAGS'] = "-L#{@settings['OECORE_TARGET_SYSROOT']}/lib -L#{@settings['OECORE_TARGET_SYSROOT']}/usr/lib"

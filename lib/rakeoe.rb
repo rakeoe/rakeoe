@@ -83,12 +83,12 @@ module RakeOE
       end
 
       # deploy binaries
-      Dir.glob("#{build_path}/apps/*").each do |file|
+      Dir.glob("#{toolchain.build_dir}/apps/*").each do |file|
         next if file.end_with?('.bin')
         FileUtils.cp(file, "#{args.deploy_dir}/bin/#{File.basename(file)}") if File.executable?(file)
       end
       # deploy dynamic libraries
-      Dir.glob("#{build_path}/libs/*.so").each do |file|
+      Dir.glob("#{toolchain.build_dir}/libs/*.so").each do |file|
         next if file.end_with?('.bin')
         FileUtils.cp(file, "#{args.deploy_dir}/lib/")
       end
