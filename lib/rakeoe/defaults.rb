@@ -19,7 +19,8 @@ module RakeOE
   DEFAULT_DIRS = {
     :apps => %w[src/app],
     :libs => %w[src/lib src/3rdparty],
-    :build => 'build'
+    :build => 'build',
+    :deploy => 'deploy'
   }
 
   # Default release mode used for the project if no such parameter given via Rakefile

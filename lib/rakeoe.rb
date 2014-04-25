@@ -73,8 +73,8 @@ module RakeOE
 
     desc 'Deploys apps and dynamic objects to deploy_dir/bin, deploy_dir/lib'
     task :deploy, [:deploy_dir] => :all do |t, args|
-      build_path="#{config.directories[:build]}/#{toolchain.target}/#{config.release}"
-      puts "Copy binaries from #{build_path} => #{args.deploy_dir}"
+      args.with_defaults(:deploy_dir => config.directories[:deploy])
+      puts "Copy binaries from #{toolchain.build_dir} => #{args.deploy_dir}"
       begin
         FileUtils.mkdir_p("#{args.deploy_dir}/bin")
         FileUtils.mkdir_p("#{args.deploy_dir}/lib")
