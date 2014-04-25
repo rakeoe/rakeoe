@@ -75,6 +75,21 @@ module RakeOE
     end
 
 
+    # Checks configuration, e.g. if given files do exist or if vital configuration settings are missing
+    #
+    # @return [bool]    true if checks pass, false otherwise
+    #
+    def checks_pass?
+      rv = true
+      unless File.exist?(@platform)
+        puts "No platform or invalid platform configuration given: (#{@platform}) !"
+        puts "Use either property 'platform' via RakeOE::Config object in the Rakefile or environment variable TOOLCHAIN_ENV"
+        rv = false
+      end
+      rv
+    end
+
+
     # Dumps configuration to stdout
     def dump
       puts "Directories                 : #{@directories}"

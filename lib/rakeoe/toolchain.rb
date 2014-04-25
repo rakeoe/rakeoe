@@ -19,6 +19,8 @@ class Toolchain
   # @param  [RakeOE::Config] config     Project wide configurations
   #
   def initialize(config)
+    raise 'Configuration failure' unless config.checks_pass?
+
     @config = config
 
     @kvr = KeyValueReader.new(config.platform)
