@@ -39,7 +39,7 @@ module RakeOE
       # This is the absolute path to the platform definition file
       #
       # This parameter can be overridden via environment variable TOOLCHAIN_ENV
-      @platform = ENV['TOOLCHAIN_ENV'].nil? ? RakeOE::DEFAULT_PLATFORM : ENV['TOOLCHAIN_ENV']
+      @platform = ENV['TOOLCHAIN_ENV'].nil? ? '' : ENV['TOOLCHAIN_ENV']
 
       # Release mode used for the project
       # It can take the values "dbg" or "release" and influences the build behaviour.

@@ -22,9 +22,6 @@ module RakeOE
     :build => 'build'
   }
 
-  # Default platform configuration used for the project
-  DEFAULT_PLATFORM = File.dirname(__FILE__)+'/toolchain/environment-arm-stm32f072-eabi.osx'
-
   # Default release mode used for the project if no such parameter given via Rakefile
   DEFAULT_RELEASE = 'dbg'
 
