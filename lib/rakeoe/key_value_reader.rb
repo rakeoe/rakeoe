@@ -19,6 +19,8 @@ class KeyValueReader
   attr_accessor :env
 
   def initialize(env_file)
+    raise "No such file #{env_file}" unless File.exist?(env_file)
+
     @file_name = env_file
     @env = self.class.read_file(@file_name)
     self.class.substitute_dollar_symbols!(@env)

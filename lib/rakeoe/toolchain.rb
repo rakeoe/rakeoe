@@ -23,7 +23,13 @@ class Toolchain
 
     @config = config
 
-    @kvr = KeyValueReader.new(config.platform)
+    begin
+      @kvr = KeyValueReader.new(config.platform)
+    rescue Exception => e
+      puts e.message
+      raise
+    end
+
     @settings = @kvr.env
     fixup_env
 
@@ -48,6 +54,16 @@ class Toolchain
   def sanity
     # TODO DS: check if libs and apps directories exist
     # TODO DS: check if test frameworks exist
+    # check if target is valid
+
+    if @settings['CC'].empty?
+      raise "No Compiler specified. Either add platform configuration via RakeOE::Config object in Rakefile or use TOOLCHAIN_ENV environment variable"
+    end
+
+    if @target.nil? || @target.empty?
+      raise "Compiler #{@settings['CC']} does not work. Fix platform settings or use TOOLCHAIN_ENV environment variable "
+    end
+
   end
 
   # returns the build directory
