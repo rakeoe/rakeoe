@@ -378,111 +378,111 @@ module RakeOE
 
       # map object to source file and make it dependent on creation of all object directories
       rule /#{build_dir}\/.*\.o/ => [ proc {|tn| obj_to_source(tn, src_dir, build_dir)}] + obj_dirs do |t|
-      if t.name =~ /\/tests\//
-        # test framework additions
+        if t.name =~ /\/tests\//
+          # test framework additions
           incs << @test_inc_dirs unless incs.include?(@test_inc_dirs)
-        @settings['ADD_CXXFLAGS'] += @test_fw.cflags
-        @settings['ADD_CFLAGS'] += @test_fw.cflags
+          @settings['ADD_CXXFLAGS'] += @test_fw.cflags
+          @settings['ADD_CFLAGS'] += @test_fw.cflags
+        end
+
+        tc.obj(:source => t.source,
+        :object => t.name,
+        :settings => @settings,
+        :includes => incs.uniq)
       end
 
-      tc.obj(:source => t.source,
-      :object => t.name,
-      :settings => @settings,
-        :includes => incs.uniq)
-    end
+      # map dependency to source file and make it dependent on creation of all object directories
+      rule /#{build_dir}\/.*\.d/ => [ proc {|tn| dep_to_source(tn, src_dir, build_dir)}] + obj_dirs do |t|
+        # don't generate dependencies for assembler files XXX DS: use tc.file_extensions[:as_sources]
+        if (t.source.end_with?('.S') || t.source.end_with?('.s'))
+          tc.touch(t.name)
+          next
+        end
 
-    # map dependency to source file and make it dependent on creation of all object directories
-    rule /#{build_dir}\/.*\.d/ => [ proc {|tn| dep_to_source(tn, src_dir, build_dir)}] + obj_dirs do |t|
-    # don't generate dependencies for assembler files XXX DS: use tc.file_extensions[:as_sources]
-    if (t.source.end_with?('.S') || t.source.end_with?('.s'))
-      tc.touch(t.name)
-      next
-    end
-
-    if t.name =~ /\/tests\//
-      # test framework additions
+        if t.name =~ /\/tests\//
+          # test framework additions
           incs << @test_inc_dirs unless incs.include?(@test_inc_dirs)
-      @settings['ADD_CXXFLAGS'] += @test_fw.cflags
-      @settings['ADD_CFLAGS'] += @test_fw.cflags
+          @settings['ADD_CXXFLAGS'] += @test_fw.cflags
+          @settings['ADD_CFLAGS'] += @test_fw.cflags
+        end
+
+        tc.dep(:source => t.source,
+        :dep => t.name,
+        :settings => @settings,
+        :includes => incs.uniq)
+      end
+
+      # make moc source file dependent on corresponding header file, XXX DS: only if project uses QT
+      rule /#{src_dir}\/.*moc_.*#{Regexp.escape(tc.moc_source)}$/ => [ proc {|tn| tn.gsub(/moc_/, '').ext(tc.moc_header_extension) } ] do |t|
+        tc.moc(:source => t.source,
+        :moc => t.name,
+        :settings => @settings)
+      end
     end
 
-    tc.dep(:source => t.source,
-    :dep => t.name,
-    :settings => @settings,
-        :includes => incs.uniq)
-  end
+    # Search dependent libraries as specified in ADD_LIBS setting
+    # of prj.rake file
+    #
+    # @param [String] settings    The project settings definition
+    #
+    # @return [Hash]                  Containing the following components mapped to an array:
+    # @option return [Array] :local   local libs found by toolchain
+    # @option return [Array] :all     local + external libs
+    #
+    def search_libs(settings)
+      # get all libs specified in ADD_LIBS
+      libs = settings['ADD_LIBS'].split
 
-  # make moc source file dependent on corresponding header file, XXX DS: only if project uses QT
-  rule /#{src_dir}\/.*moc_.*#{Regexp.escape(tc.moc_source)}$/ => [ proc {|tn| tn.gsub(/moc_/, '').ext(tc.moc_header_extension) } ] do |t|
-  tc.moc(:source => t.source,
-  :moc => t.name,
-  :settings => @settings)
-end
-end
+      # match libs found by toolchain
+      local_libs = libs.each_with_object(Array.new) do |lib, arr|
+        arr << lib if (PrjFileCache.contain?('LIB', lib) || PrjFileCache.contain?('SOLIB', lib))
+      end
 
-# Search dependent libraries as specified in ADD_LIBS setting
-# of prj.rake file
-#
-# @param [String] settings    The project settings definition
-#
-# @return [Hash]                  Containing the following components mapped to an array:
-# @option return [Array] :local   local libs found by toolchain
-# @option return [Array] :all     local + external libs
-#
-def search_libs(settings)
-# get all libs specified in ADD_LIBS
-libs = settings['ADD_LIBS'].split
+      # return value is a hash
+      {
+        :local => local_libs,
+        :all => libs
+      }
+    end
 
-# match libs found by toolchain
-local_libs = libs.each_with_object(Array.new) do |lib, arr|
-  arr << lib if (PrjFileCache.contain?('LIB', lib) || PrjFileCache.contain?('SOLIB', lib))
-end
+    # Iterate over each local library and execute given block
+    #
+    # @param [Block]  block   The block that is executed
+    #
+    def each_local_lib(&block)
+      libs = search_libs(@settings)
+      libs[:local].each do |lib|
+        yield(lib)
+      end
+    end
 
-# return value is a hash
-{
-  :local => local_libs,
-  :all => libs
-}
-end
+    #
+    # Returns absolute paths to dependend local libraries, i.e. libraries
+    # of the current project.
+    #
+    def paths_of_local_libs
+      local_libs = Array.new
 
-# Iterate over each local library and execute given block
-#
-# @param [Block]  block   The block that is executed
-#
-def each_local_lib(&block)
-libs = search_libs(@settings)
-libs[:local].each do |lib|
-  yield(lib)
-end
-end
+      each_local_lib() do |lib|
+        if PrjFileCache.contain?('LIB', lib)
+          local_libs << "#{tc.settings['LIB_OUT']}/lib#{lib}.a"
+        elsif PrjFileCache.contain?('SOLIB', lib)
+          local_libs << "#{tc.settings['LIB_OUT']}/lib#{lib}.so"
+        end
+      end
 
-#
-# Returns absolute paths to dependend local libraries, i.e. libraries
-# of the current project.
-#
-def paths_of_local_libs
-local_libs = Array.new
+      local_libs
+    end
 
-each_local_lib() do |lib|
-  if PrjFileCache.contain?('LIB', lib)
-    local_libs << "#{tc.settings['LIB_OUT']}/lib#{lib}.a"
-  elsif PrjFileCache.contain?('SOLIB', lib)
-    local_libs << "#{tc.settings['LIB_OUT']}/lib#{lib}.so"
-  end
-end
-
-local_libs
-end
-
-# Greps for a string in a file
-#
-# @param [String] file    Filename to be used for operation
-# @param [String] string  String to be searched for in file
-#
-# @return [boolean]  true if string found inside file, false otherwise
-#
-def fgrep(file, string)
+    # Greps for a string in a file
+    #
+    # @param [String] file    Filename to be used for operation
+    # @param [String] string  String to be searched for in file
+    #
+    # @return [boolean]  true if string found inside file, false otherwise
+    #
+    def fgrep(file, string)
       open(file).grep(/#{string}/).any?
-end
-end
+    end
+  end
 end
