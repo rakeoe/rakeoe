@@ -203,7 +203,9 @@ class Toolchain
     @settings['BUILD_DIR'] = "#{build_dir}"
     @settings['LIB_OUT'] = "#{@settings['BUILD_DIR']}/libs"
     @settings['APP_OUT'] = "#{@settings['BUILD_DIR']}/apps"
-    @settings['SYS_LFLAGS'] = "-L#{@settings['OECORE_TARGET_SYSROOT']}/lib -L#{@settings['OECORE_TARGET_SYSROOT']}/usr/lib"
+    unless @settings['OECORE_TARGET_SYSROOT'].nil? || @settings['OECORE_TARGET_SYSROOT'].empty?
+      @settings['SYS_LFLAGS'] = "-L#{@settings['OECORE_TARGET_SYSROOT']}/lib -L#{@settings['OECORE_TARGET_SYSROOT']}/usr/lib"
+    end
 
     # set LD_LIBRARY_PATH
     @settings['LD_LIBRARY_PATH'] = @settings['LIB_OUT']
