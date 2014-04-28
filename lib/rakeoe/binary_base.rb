@@ -82,7 +82,7 @@ module RakeOE
       end
 
       @test_binary =  "#{bin_dir}/#{name}-test"
-      @test_inc_dirs = @test_fw.include
+      @test_inc_dirs = @test_fw.include.join(' ')
 
       handle_prj_type
       handle_qt if '1' == @settings['USE_QT']
@@ -378,11 +378,9 @@ module RakeOE
 
       # map object to source file and make it dependent on creation of all object directories
       rule /#{build_dir}\/.*\.o/ => [ proc {|tn| obj_to_source(tn, src_dir, build_dir)}] + obj_dirs do |t|
-
-
       if t.name =~ /\/tests\//
         # test framework additions
-        incs += [@test_fw.include]
+          incs << @test_inc_dirs unless incs.include?(@test_inc_dirs)
         @settings['ADD_CXXFLAGS'] += @test_fw.cflags
         @settings['ADD_CFLAGS'] += @test_fw.cflags
       end
@@ -390,12 +388,11 @@ module RakeOE
       tc.obj(:source => t.source,
       :object => t.name,
       :settings => @settings,
-      :includes => incs)
+        :includes => incs.uniq)
     end
 
     # map dependency to source file and make it dependent on creation of all object directories
     rule /#{build_dir}\/.*\.d/ => [ proc {|tn| dep_to_source(tn, src_dir, build_dir)}] + obj_dirs do |t|
-
     # don't generate dependencies for assembler files XXX DS: use tc.file_extensions[:as_sources]
     if (t.source.end_with?('.S') || t.source.end_with?('.s'))
       tc.touch(t.name)
@@ -404,7 +401,7 @@ module RakeOE
 
     if t.name =~ /\/tests\//
       # test framework additions
-      incs += [@test_fw.include]
+          incs << @test_inc_dirs unless incs.include?(@test_inc_dirs)
       @settings['ADD_CXXFLAGS'] += @test_fw.cflags
       @settings['ADD_CFLAGS'] += @test_fw.cflags
     end
@@ -412,7 +409,7 @@ module RakeOE
     tc.dep(:source => t.source,
     :dep => t.name,
     :settings => @settings,
-    :includes => incs)
+        :includes => incs.uniq)
   end
 
   # make moc source file dependent on corresponding header file, XXX DS: only if project uses QT
@@ -485,8 +482,7 @@ end
 # @return [boolean]  true if string found inside file, false otherwise
 #
 def fgrep(file, string)
-open(file) { |f| f.grep(/#{string}/) }
+      open(file).grep(/#{string}/).any?
 end
 end
-
 end
