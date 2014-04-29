@@ -294,7 +294,15 @@ class Toolchain
   # @return [String]      Linker line
   #
   def linker_line_for(libs)
-    libs.map { |lib| "-l#{lib}" }.join(' ').strip
+    libs.map do |lib|
+      settings = res_platform_settings(lib)
+      if settings[:LDFLAGS].nil?
+        # automatic linker line if no platform specific LDFLAGS exist
+        "-l#{lib}"
+      else
+        settings[:LDFLAGS]
+      end
+    end.join(' ').strip
   end
 
   # Touches a file
@@ -310,15 +318,16 @@ class Toolchain
   # @param resource_name  [String]  name of resource
   # @return [Hash]                  Hash of compilation/linkage flags or empty hash if no settings are defined
   #                                 The returned hash has the following format:
-  #                                 { 'CFLAGS' => '...', 'CXXFLAGS' => '...', 'LDFLAGS' => '...'}
+  #                                 { :CFLAGS => '...', :CXXFLAGS => '...', :LDFLAGS => '...'}
   #
   def res_platform_settings(resource_name)
     return {} if resource_name.empty?
 
     rv = Hash.new
-    rv['CFLAGS'] = @settings["#{resource_name}_CFLAGS"]
-    rv['CXXFLAGS'] = @settings["#{resource_name}_CXXFLAGS"]
-    rv['LDFLAGS'] = @settings["#{resource_name}_LDFLAGS"]
+    rv[:CFLAGS]  = @settings["#{resource_name}_CFLAGS"]
+    rv[:CXXFLAGS]= @settings["#{resource_name}_CXXFLAGS"]
+    rv[:LDFLAGS] = @settings["#{resource_name}_LDFLAGS"]
+    rv = {} if rv.values.empty?
     rv
   end
 

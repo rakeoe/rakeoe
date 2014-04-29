@@ -365,14 +365,15 @@ module RakeOE
 
       incs = inc_dirs
       # find platform specific resource flags
-      # XXX DS
       libs = search_libs(@settings)
       libs[:all].each do |name|
         platform_settings = tc.res_platform_settings(name)
-        if platform_settings.values.any?
-          @settings['ADD_CFLAGS'] += " #{platform_settings['CFLAGS']}" if platform_settings['CFLAGS']
-          @settings['ADD_CXXFLAGS'] += " #{platform_settings['CXXFLAGS']}" if platform_settings['CXXFLAGS']
-          @settings['ADD_LDFLAGS'] += " #{platform_settings['LDFLAGS']}" if platform_settings['LDFLAGS']
+        unless platform_settings.empty?
+          @settings['ADD_CFLAGS'] += " #{platform_settings[:CFLAGS]}" if platform_settings[:CFLAGS]
+          @settings['ADD_CXXFLAGS'] += " #{platform_settings[:CXXFLAGS]}" if platform_settings[:CXXFLAGS]
+          # platform_settings[:LDFLAGS] is set in Toolchain#linker_line_for
+          # XXX: remove all -lXX settings from platform_settings[:LDFLAGS] and add rest to @settings['ADD_LDFLAGS'],
+          # XXX: use all -lXX in Toolchain#linker_line_for
         end
       end
 
