@@ -366,21 +366,9 @@ module RakeOE
     # Create build rules for generating an object. Dependency to corresponding source file is made via proc
     # object
     def create_build_rules
+      platform_flags_fixup(search_libs(@settings))
 
       incs = inc_dirs
-      # find platform specific resource flags
-      libs = search_libs(@settings)
-      libs[:all].each do |name|
-        platform_settings = tc.res_platform_settings(name)
-        unless platform_settings.empty?
-          @settings['ADD_CFLAGS'] += " #{platform_settings[:CFLAGS]}" if platform_settings[:CFLAGS]
-          @settings['ADD_CXXFLAGS'] += " #{platform_settings[:CXXFLAGS]}" if platform_settings[:CXXFLAGS]
-          # platform_settings[:LDFLAGS] is set in Toolchain#linker_line_for
-          # XXX: remove all -lXX settings from platform_settings[:LDFLAGS] and add rest to @settings['ADD_LDFLAGS'],
-          # XXX: use all -lXX in Toolchain#linker_line_for
-        end
-      end
-
       # map object to source file and make it dependent on creation of all object directories
       rule /#{build_dir}\/.*\.o/ => [ proc {|tn| obj_to_source(tn, src_dir, build_dir)}] + obj_dirs do |t|
         if t.name =~ /\/tests\//
@@ -422,6 +410,23 @@ module RakeOE
         tc.moc(:source => t.source,
                :moc => t.name,
                :settings => @settings)
+      end
+    end
+
+    # Change ADD_CFLAGS, ADD_CXXFLAGS, ADD_LDFLAGS according to settings in platform file.
+    #
+    # @param libs [Array]   Array of libraries to be considered
+    #
+    def platform_flags_fixup(libs)
+      libs[:all].each do |lib|
+        ps = tc.platform_settings_for(lib)
+        unless ps.empty?
+          @settings['ADD_CFLAGS'] += " #{ps[:CFLAGS]}" if ps[:CFLAGS]
+          @settings['ADD_CXXFLAGS'] += " #{ps[:CXXFLAGS]}" if ps[:CXXFLAGS]
+          # platform_settings[:LDFLAGS] is set in Toolchain#linker_line_for
+          # XXX: remove all -lXX settings from platform_settings[:LDFLAGS] and add rest to @settings['ADD_LDFLAGS'],
+          # XXX: use all -lXX in Toolchain#linker_line_for
+        end
       end
     end
 

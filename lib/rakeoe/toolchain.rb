@@ -295,7 +295,7 @@ class Toolchain
   #
   def linker_line_for(libs)
     libs.map do |lib|
-      settings = res_platform_settings(lib)
+      settings = platform_settings_for(lib)
       if settings[:LDFLAGS].nil?
         # automatic linker line if no platform specific LDFLAGS exist
         "-l#{lib}"
@@ -320,7 +320,7 @@ class Toolchain
   #                                 The returned hash has the following format:
   #                                 { :CFLAGS => '...', :CXXFLAGS => '...', :LDFLAGS => '...'}
   #
-  def res_platform_settings(resource_name)
+  def platform_settings_for(resource_name)
     return {} if resource_name.empty?
 
     rv = Hash.new
