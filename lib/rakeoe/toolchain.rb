@@ -287,7 +287,7 @@ class Toolchain
     paths.each_with_object('') {|path, str| str << " -I#{path}"}
   end
 
-  # Generates linker line from given library list
+  # Generates linker line from given library list.
   #
   # @param [Array]  libs  Libraries to be used for linker line
   #
@@ -300,7 +300,8 @@ class Toolchain
         # automatic linker line if no platform specific LDFLAGS exist
         "-l#{lib}"
       else
-        settings[:LDFLAGS]
+        # only matches -l<libname> settings
+        /(\s|^)+-l\S+/.match(settings[:LDFLAGS]).to_s
       end
     end.join(' ').strip
   end

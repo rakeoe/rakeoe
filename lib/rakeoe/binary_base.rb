@@ -423,9 +423,10 @@ module RakeOE
         unless ps.empty?
           @settings['ADD_CFLAGS'] += " #{ps[:CFLAGS]}" if ps[:CFLAGS]
           @settings['ADD_CXXFLAGS'] += " #{ps[:CXXFLAGS]}" if ps[:CXXFLAGS]
-          # platform_settings[:LDFLAGS] is set in Toolchain#linker_line_for
-          # XXX: remove all -lXX settings from platform_settings[:LDFLAGS] and add rest to @settings['ADD_LDFLAGS'],
-          # XXX: use all -lXX in Toolchain#linker_line_for
+
+          # remove all -lXX settings from ps[:LDFLAGS] and use rest for @settings['ADD_LDFLAGS'],
+          # -lXX is set in Toolchain#linker_line_for
+          @settings['ADD_LDFLAGS'] += ps[:LDFLAGS].gsub(/(\s|^)+-l\S+/, '') if ps[:LDFLAGS]
         end
       end
     end
