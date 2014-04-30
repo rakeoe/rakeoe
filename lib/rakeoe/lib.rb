@@ -34,7 +34,7 @@ module RakeOE
 
       task name => [binary]
 
-      file binary => paths_of_local_libs + deps + objs + [@settings['PRJ_FILE']] do
+      file binary => paths_of_local_libs + deps + objs do
         tc.lib(:objects => objs,
         :lib => binary,
         :settings => @settings)

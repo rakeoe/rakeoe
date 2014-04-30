@@ -52,7 +52,7 @@ module RakeOE
       # create build directory
       directory build_dir
 
-      binary_targets = paths_of_local_libs() + @app_main_dep + @app_main_obj + [@settings['PRJ_FILE']]
+      binary_targets = paths_of_local_libs() + @app_main_dep + @app_main_obj
 
       # This is only necessary if we have more than a single app main file
       if @app_lib_objs.any?

@@ -67,13 +67,17 @@ module RakeOE
 
       @objs = @srcs.map {|file| source_to_obj(file, @src_dir, @build_dir)}
       @test_objs = @test_srcs.map {|file| source_to_obj(file, @src_dir, @build_dir)}
-
       @deps = @objs.map {|obj| obj.ext('.d')}
       @test_deps = @test_objs.map {|obj| obj.ext('.d')}
 
       # load dependency files if already generated
       load_deps(@deps)
       load_deps(@test_deps)
+
+      # all objs are dependent on project file and platform file
+      (@objs+@test_objs).each do |obj|
+        file obj => [@settings['PRJ_FILE'], @tc.config.platform]
+      end
 
       if (@settings['TEST_FRAMEWORK'].nil? or @settings['TEST_FRAMEWORK'].empty?)
         @test_fw = @tc.default_test_framework        
