@@ -84,11 +84,11 @@ module RakeOE
         file test_binary => [@test_fw.binary_path] + [binary] + test_deps + test_objs do
           prj_libs = search_libs(settings)
           tc.test(:objects => test_objs,
-          :test => test_binary,
-          :libs => prj_libs[:all] + [name],
-          :framework => @test_fw.name,
-          :settings => @settings,
-          :includes => test_dirs)
+                  :test => test_binary,
+                  :libs => prj_libs[:all] + [name],
+                  :framework => @test_fw.name,
+                  :settings => @settings,
+                  :includes => test_dirs)
         end
         CLEAN.include(test_binary, build_dir)
         task :all => "#{name}"

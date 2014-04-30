@@ -391,9 +391,9 @@ module RakeOE
         end
 
         tc.obj(:source => t.source,
-        :object => t.name,
-        :settings => @settings,
-        :includes => incs.uniq)
+               :object => t.name,
+               :settings => @settings,
+               :includes => incs.uniq)
       end
 
       # map dependency to source file and make it dependent on creation of all object directories
@@ -412,16 +412,16 @@ module RakeOE
         end
 
         tc.dep(:source => t.source,
-        :dep => t.name,
-        :settings => @settings,
-        :includes => incs.uniq)
+               :dep => t.name,
+               :settings => @settings,
+               :includes => incs.uniq)
       end
 
       # make moc source file dependent on corresponding header file, XXX DS: only if project uses QT
       rule /#{src_dir}\/.*moc_.*#{Regexp.escape(tc.moc_source)}$/ => [ proc {|tn| tn.gsub(/moc_/, '').ext(tc.moc_header_extension) } ] do |t|
         tc.moc(:source => t.source,
-        :moc => t.name,
-        :settings => @settings)
+               :moc => t.name,
+               :settings => @settings)
       end
     end
 
