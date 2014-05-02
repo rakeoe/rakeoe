@@ -21,16 +21,16 @@ The work on this build system has been kindly sponsored by [ifm syntron](http://
 
 ## Getting Started
 
-* [Feature List](https://github.com/rakeoe/rakeoe/wiki/Features)
-* Make sure you have all [prerequistes](https://github.com/rakeoe/rakeoe/wiki/Prerequisites)
+* [Feature list](https://github.com/rakeoe/rakeoe/wiki/Features)
+* Make sure you have all [prerequisites](https://github.com/rakeoe/rakeoe/wiki/Prerequisites)
 * [Install](https://github.com/rakeoe/rakeoe/wiki/Installation) the gem
 * Get familiar with the [basic usage](https://github.com/rakeoe/rakeoe/wiki/Basic-Usage)
 
 ## Diving In
 
 * Look at the [examples](https://github.com/rakeoe/rakeoe/wiki/Examples)
-* Add [Bash autocompletion](https://github.com/rakeoe/rakeoe/wiki/Shell-autocompletion-for-rake)
-* Study the [Reference](https://github.com/rakeoe/rakeoe/wiki/Reference) section
+* Add [bash autocompletion](https://github.com/rakeoe/rakeoe/wiki/Shell-autocompletion-for-rake)
+* Study the [reference](https://github.com/rakeoe/rakeoe/wiki/Reference) section
 
 ## License
 
