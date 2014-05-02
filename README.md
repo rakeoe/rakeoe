@@ -10,28 +10,37 @@ RakeOE uses a *convention over configuration* paradigm to enable a fast jump sta
 Though it's possible to override defaults, tweak library specific platform flags and do all kind of configuration management settings, one can get a long way without doing so.<br/>
 <br/>
 RakeOE uses OpenEmbedded / Yocto environment files to automatically pick up all appropriate paths and flags for the given build platform. In this way it supports cross compilation in whatever target platform the cross compiler builds. But it's also possible and encouraged to use it for native host development.<br/>
-The toolchain has to be gcc compatible at the moment, e.g. has to implement the -dumpmachine, -MM, -MF and -MT options. Clang qualifies for that as well.
+<br/>
+The toolchain has to be [gcc](http://gcc.gnu.org/) compatible at the moment, i.e. has to implement the **-dumpmachine**, **-MM**, **-MF** and **-MT** options among others. [Clang](http://clang.llvm.org/) qualifies for that as well.
 
 
 ## Prerequisites
 
 ### Ruby
-RakeOE is based on Rake. Rake comes bundled with Ruby. Therefore you should have installed a recent [Ruby version](http://www.ruby-lang.org/en/ "[Latest Ruby") on your development machine. If using a unixoid system (like Linux / Mac OS X), it's recommended to use [rvm](https://rvm.io/) or [rbenv](https://github.com/sstephenson/rbenv) for managing your ruby installation, as the default ruby installation on those systems might be outdated. If on Windows, use the default Windows installer and follow the installation instruction for your specific Windows version. Required is **Ruby >= 2.0.0**.
+RakeOE is based on Rake. Rake comes bundled with Ruby. Therefore you should have installed a recent [Ruby version](http://www.ruby-lang.org/en/ "[Latest Ruby") on your development machine. If using a unixoid system (like Linux / Mac OS X), it's recommended to use [rvm](https://rvm.io/) or [rbenv](https://github.com/sstephenson/rbenv) for managing your ruby installation, as the default ruby installation on those systems might be outdated. If on Windows, use the default Windows Ruby installer and follow the installation instruction for your specific Windows version. Required is **Ruby >= 2.0.0**.
 
-### OS
-Rake OE has been tested on Linux, Windows(XP,7) and Mac OS X. It should work on whatever platform Ruby/Rake runs on.<br/>
+### Host OS
+RakeOE has been tested on Linux, Windows(XP,7) and Mac OS X. It should work on whatever platform Ruby/Rake runs on.<br/>
 
 ### Toolchain
 For the time beeing, **gcc** or a gcc-compatible compiler like **clang** is required. Besides compilation, gcc is used e.g. for header file dependency generation or platform informations.<br/>
-<br/>
-If you'd want to compile for ARM Cortex-M/R - compatibe microcontrollers, we recommend the [Launchpad ARM](https://launchpad.net/gcc-arm-embedded) toolchain. It's free and very well maintained.<br/>
-<br/>
+
+####  Bare-metal
+If you'd want to compile bare metal for ARM Cortex-M/R - compatibe microcontrollers, we recommend the [Launchpad ARM](https://launchpad.net/gcc-arm-embedded) toolchain. It's free and very well maintained. Of course not only ARM toolchains can be used. Any gcc bare-metal toolchain should be usable.<br/>
+You have to adapt one of the available platform files for the specific platform you are cross compiling for. Often for bare metal toolchains this means specifying a linker file and various compilation flags.
+
+#### Linux
 If you'd want to use RakeOE for Linux development, you have various options:
 
-1.      Choose the native toolchain or one of the zillions cross-toolchains out there and adapt one of the available platform files
-1.      Install some flavour of Yocto/OpenEmbedded on your host platform and use the provided environment-XXX platform file
+1.      Choose the native toolchain and adapt one of the available platform files
+1.      Choose one of the zillions cross-toolchains out there and adapt one of the available platform files
+1.      Install some flavour of [Yocto](https://www.yoctoproject.org/)/[OpenEmbedded](http://www.openembedded.org/) on your host platform and use the provided environment-XXX platform file
  
-RakeOE has been tested with [ELDK-5.3/Yocto Danny](http://www.denx.de/wiki/ELDK-5/ "[ELDK-5.3/Yocto Danny") but other OpenEmbedded based toolchains should work similarly well.<br/>
+RakeOE has been tested with the following Linux toolchains:
+
+1.      [ELDK-5.3/Yocto Danny](http://www.denx.de/wiki/ELDK-5/ "[ELDK-5.3/Yocto Danny") (newer Yocto or other OpenEmbedded based toolchains should work similarly well)
+1.      Ubuntu 12.04 native (32-Bit / 64-Bit)
+1.      SuSe Enterprise 11 native
 
 ##  Features
 ### Subprojects
@@ -41,7 +50,7 @@ The project can then be built by typing:
 
     rake <namespace>:<project name>
     
-There are 2 buildable namespaces available: **APP** for applications, **LIB** for static/dynamic libraries.<br/>
+There are 2 buildable namespaces available: **app** for applications, **lib** for static/dynamic libraries.<br/>
 There are a multitude of convenience rake tasks generated as well. More of that below.
 
 #### Settings
@@ -98,13 +107,18 @@ In most cases you have already a bunch of source code in a certain directory hie
 <br/>
 This prj.rake directive controls where RakeOE searches for source and include files:
 
-    ADD_SRC_DIRS = '<dir1> <dir2> ... <dirn>'
+    ADD_SOURCE_DIRS = '<dir1> <dir2> ... <dirn>'
 
 This directive controls where RakeOE searches for include files:
 
     ADD_INC_DIRS = '<dir1> <dir2> ... <dirn>'
     
-Directories should always be relative to the subprojects directory.
+Directories should always be relative to the subprojects directory.<br/>
+<br/>
+You can exclude specific source files from the build by specifiying:
+
+    IGNORED_SOURCES = '<src1> <src2> ... <srcn>'
+    
 
 ### Dependencies
 When using multiple subprojects with libraries, one can build a dependency chain between library => library and application => library. Those dependencies are taken into account for build order, include paths and linkage.<br/>
@@ -118,6 +132,15 @@ To export an include directory for other subprojects to be used for compilation,
     EXPORTED_INC_DIRS = '<dir1> <dir2> ... <dirn>'
 
 Recursive dependencies are detected and an error is given in this case.<br/>
+
+### TDD
+RakeOE has built-in support for unit testing. If the configuration has the property RakeOE::Config.test_fw set, it searches in the namespace 'lib' for a subproject with the exact same name and uses this library specifically for generation of additional test cases.<br/>
+<br/>
+The following prj.rake directive enables subproject specific unit tests:
+
+    TEST_SOURCE_DIRS  = '<dir1> <dir2> ... <dirn>'
+    
+
 
 ### Qt
 RakeOE has built-in support for Qt. It will automatically parse header files in Qt enabled sub projects and run the moc compiler on them if a **Q_OBJECT** declaration is encountered. Build settings of the used Qt framework have to be provided by the platform file.<br/>
@@ -144,11 +167,41 @@ To get a list of all rake tasks (including low level rake tasks), type at the co
 You can pass a version string to all compiled files via environment variable **SW_VERSION_ENV**. The content of this environment variable is passed to the build in CFLAGS/CXXFLAGS as **-DPROGRAM_VERSION**. The default value in case no such environment variable is present is "unversioned".
 
 
-## Usage:
+## Basic usage:
 
 You need a top level Rakefile where you require the rakeoe gem, create a RakeOE::Config object and initialize
-the project by calling RakeOE::init.
+the project by calling RakeOE::init.<br/>
+<br/>
+This is the minimal Rakefile you need:
 
+    require 'rakeoe'
+    
+    RakeOE::init(RakeOE::Config.new)
+
+Here only defaults are used and the following assumptions are made:
+
+#### Directory layout
+
+    project-root
+        ├── build
+        │   └── <platform>
+        │       ├── dbg
+        │       │   ├── apps
+        │       │   └── libs
+        │       └── release
+        │           ├── apps
+        │           └── libs
+        ├── Rakefile
+        └── src
+            ├── 3rdparty
+            │   └── 3rdpartylibA
+            │       └── prj.rake
+            ├── app
+            │   └── appA
+            │       └── prj.rake
+            └── lib
+                └── libB
+                    └── prj.rake
 
 You define subprojects somewhere beneath the root directory each with a prj.rake file inside. Any number of subprojects can be added like this. RakeOE knows apps, static and dynamic libraries. You can make apps and libraries dependent on other libraries. All build dependencies are then handled automatically.<br/>
 
