@@ -53,7 +53,234 @@ The project can then be built by typing:
 There are 2 buildable namespaces available: **app** for applications, **lib** for static/dynamic libraries.<br/>
 There are a multitude of convenience rake tasks generated as well. More of that below.
 
-#### Settings
+
+### Adaptability
+In most cases you have already a bunch of source code in a certain directory hierarchy available. It's easy to integrate 3rdparty projects or your own existing source codes into RakeOE. Just copy the top level directory inside the configured source folder and drop appropriate prj.rake file(s) into it.<br>
+<br/>
+This prj.rake directive controls where RakeOE searches for source and include files:
+
+    ADD_SOURCE_DIRS = '<dir1> <dir2> ... <dirn>'
+
+This directive controls where RakeOE searches for include files:
+
+    ADD_INC_DIRS = '<dir1> <dir2> ... <dirn>'
+    
+Directories should always be relative to the subprojects directory.<br/>
+<br/>
+You can exclude specific source files from the build by specifiying:
+
+    IGNORED_SOURCES = '<src1> <src2> ... <srcn>'
+    
+In the Rakefile you can configure any number of source code suffixes and directories:
+
+    config = RakeOE::Config.new
+    config.suffixes = {
+        :as_sources => %w[.S .s],                # Assembler source file suffixes
+        :c_sources => %w[.c],                    # C source file suffixes
+        :c_headers => %w[.h],                    # C header file suffixes
+        :cplus_sources => %w[.cpp .cxx .C .cc],  # C++ source file suffixes
+        :cplus_headers => %w[.h .hpp .hxx .hh],  # C++ header file suffixes
+        :moc_header => '.h',                     # header to search for Q_OBJECT directives
+        :moc_source => '.cpp'                    # moc file extension to use for generating moc files
+    }
+    config.directories = {
+              :apps =>         %w[src/app],               # Top level application source directories
+              :libs =>         %w[src/lib src/3rdparty],  # Top level library directories
+              :build =>        'build'                    # Top level buils directory
+            }
+
+### Dependencies
+When using multiple subprojects with libraries, one can build a dependency chain between library => library and application => library. Those dependencies are taken into account for build order, include paths and linkage.<br/>
+<br/>
+To enable dependency from one subproject to another library subproject, use the following setting in the subprojects prj.rake file:
+
+    ADD_LIBS = '<lib1> <lib2> ... <libn>'
+
+To export an include directory for other subprojects to be used for compilation, specify in your prj.rake file:
+
+    EXPORTED_INC_DIRS = '<dir1> <dir2> ... <dirn>'
+
+Recursive dependencies are detected and an error is given in this case.<br/>
+
+### TDD
+RakeOE has built-in support for unit testing and test driven develpoment (TDD). If the configuration has the property `RakeOE::Config.test_fw` set, it searches in the namespace `lib:` for a subproject with the exact same name and uses this library to be linked against encountered test cases. There is only one test runner per subproject you can use.<br/>
+<br/>
+The following prj.rake directive enables subproject specific unit tests:
+
+    TEST_SOURCE_DIRS  = '<dir1> <dir2> ... <dirn>'
+    
+Depending on the project type, for every subproject with test cases either a `lib:test:<project-name>` or `app:test:<project-name>` rake task is generated. All those test tasks are invoked when executing `rake test:all`. If the target platform equals the host platform, all test tasks are automatically executed after a successful build.<br/>
+<br/>
+The following build assumptions are made dependent on the project type:
+
+#### LIB/SOLIB
+The library is made just normally. No special flags will be provided when building. Exactly one file in `TEST_SOURCE_DIRS` has to contain a `main()` function that calls the test runner and initializes all test cases. All objects in `TEST_SOURE_DIRS` are given to the linker before all other libraries so that mocking of standard calls is possible.
+
+##### APP
+The application is splitted into a static application library and the object containing `main()`. Because RakeOE does not know in which file `main()` exists, the convention is to name the basename of that particular file exactly the same as the subproject name itself. RakeOE links all test cases then similarly to the library convention above to the application library. The file with `main()` is not used. This convention is necessary because otherwise there would be two `main()` functions resulting in a multiple references linking error. To get as much test coverage as possible it is therefore recommended to place as little functionality in the file containing `main()`.
+
+### Qt
+RakeOE has built-in support for Qt. It will automatically parse header files in Qt enabled sub projects and run the moc compiler on them if a **Q_OBJECT** declaration is encountered. Build settings of the used Qt framework have to be provided by the platform file.<br/>
+<br>
+To enable Qt in your subproject, use the following setting in the subprojects prj.rake file:
+
+    USE_QT = 1
+    
+### User friendliness
+There are "top level" rake tasks which are documented and lower level rake tasks that are not. All application and library subprojects are top level rake tasks. If there are tests present, those are also top level rake tasks.<br/>
+<br/>
+To get a list of all top level rake tasks, type at the command line:
+
+    rake -T
+
+All final and intermediate build steps can be executed with all dependencies managed automatically. You can specify to build just a single object or moc file because all generated files are in fact low level rake tasks.<br/>
+<br/>
+To get a list of all rake tasks (including low level rake tasks), type at the command line:
+
+    rake -T -A
+
+### Build system friendliness
+The possibility to build on a continuous integration server like Jenkins and configuration management features are corner stones of RakeOE. It can be configured to use different toolchains and Rakefiles for different platforms and different build environments. It can even be used to build just specific subprojects for specific platforms but provide common subprojects that are independent from a specific platform.<br/>
+Either way you can configure various settings that influence the build behaviour. You can even configure library specific platform settings inside the platform file, e.g. if some library uses platform specific include directories or linkage flags then all can be configured in the platform file without changing any source code or using distracting `#ifdef PLATFORM_X ... #else ... #endif` directives.
+
+#### TOOLCHAIN_ENV
+You can specifiy via the `TOOLCHAIN_ENV` environment variable which platform file to use. You can copy the platform file and name it differently according to your needs and tweak just basic settings. Or you have a different platfrom file that describes a completey different toolchain.<br/>
+Note that you may also specifiy the platform file via `RakeOE::Config.platform` configuration. If present the `TOOLCHAIN_ENV` environment variable will be ignored.
+
+#### Different Rakefiles
+You can specify via `rake -f <Rakefile>` which Rakefile to use. If you don't specify `-f` a file named `Rakefile` in the top-level directory is assumed. Some configurations are only settable via the configuration object `RakeOE::Config` so that you will need different Rakefiles if you want to provide multiple of those settings per project.
+
+#### Debug/Release mode
+If you define the `RELEASE` environment variable, RakeOE builds in release mode and uses a different set of optimization flags as well as another build directory. In the `RakeOE::Config` object you can configure the settings `optimization_dbg` and `optimization_release` used for debug and release mode. All other settings like standard CFLAGS/CXXFLAGS and LDFLAGS are taken from the platform file.<br/>
+By default RakeOE builds in debug mode.
+
+#### Versioning
+You can pass a version string to all compiled files via environment variable **SW_VERSION_ENV**. The content of this environment variable is passed to the build in CFLAGS/CXXFLAGS as **-DPROGRAM_VERSION**. The default value in case no such environment variable is present is **unversioned-$REALEASE**, where **$RELEASE** is either `dbg` or `release` dependent on the release mode.
+
+#### Library specific platform settings
+Assume on `platform A` a specific library is placed under `/usr/lib/libA/libA.so` and its include file(s) under `/usr/include/libA/...`. Now on `platform B` a newer version of the library is installed at different places: the binary in `/opt/lib/libA/libAv2.so` and include file(s) in `/opt/inc/libAv2/...`. You can solve this scenario by placing the following directives in the platform files:
+
+Platform file A:
+
+    libA_CFLAGS   = '-I/usr/include/libA'
+    libA_CXXFLAGS = '-I/usr/include/libA'
+    libA_LDFLAGS  = '-lA -L/usr/lib/libA'
+    
+Platform file B:
+
+    libA_CFLAGS   = '-I/opt/inc/libAv2'
+    libA_CXXFLAGS = '-I/opt/inc/libAv2'
+    libA_LDFLAGS  = '-lAv2 -L/opt/lib/libAv2'
+    
+And in the prj.rake file:
+
+    ADD_LIBS = 'A'
+
+In the same way it's possible to not only resolve platform specific issues for external libraries but also for subproject libraries, if. e.g. different compilation and linker flags have to be used for different platforms.
+
+## Basic usage:
+
+You need a top level Rakefile where you require the rakeoe gem, create a RakeOE::Config object and initialize
+the project by calling RakeOE::init.<br/>
+<br/>
+This is the minimal Rakefile you need:
+
+    require 'rakeoe'
+    
+    RakeOE::init(RakeOE::Config.new)
+
+Here only defaults are used and the following assumptions are made:
+
+#### Directory layout
+
+    project-root
+        ├── build
+        │   └── <platform>
+        │       ├── dbg
+        │       │   ├── apps
+        │       │   └── libs
+        │       └── release
+        │           ├── apps
+        │           └── libs
+        ├── Rakefile
+        └── src
+            ├── 3rdparty
+            │   └── 3rdpartylibA
+            │       └── prj.rake
+            ├── app
+            │   └── appA
+            │       └── prj.rake
+            └── lib
+                └── libB
+                    └── prj.rake
+
+You define subprojects somewhere beneath the root directory each with a prj.rake file inside. Any number of subprojects can be added like this. In the default case your library projects should go to `src/lib` and your application projects to `src/app`. If necessary add library dependencies to the applications by filling in the `ADD_LIBS` variable in the application `prj.rake` file.<br/>
+<br/>
+After the basic setup has been made, test your project by typing:
+
+    <TOOLCHAIN_ENV=filename> rake -T
+    
+Now a list of all possible targets should appear.<br/>
+<br/>
+To make all libraries and applications, type:
+
+    <TOOLCHAIN_ENV=filename> rake <target>
+
+
+#### Basic rake targets
+
+Use **`rake all`**<br/>
+to compile all applications and libraries
+
+Use **`rake app:all`**<br/>
+to compile only applications
+
+Use **`rake lib:all`**<br/>
+to compile only libraries
+
+Use **`rake test`**<br/>
+to execute all unit tests for applications/libraries
+
+Use **`rake -T `**<br/>
+for a list of important targets with explanation.
+
+Use **`rake -T -A`**<br/>
+for a list of all possible targets.
+
+
+If no parameter given, **`rake all`** is assumed. Mind off to specify the platform file either via `TOOLCHAIN_ENV` or via `RakeOE::Config` object inside the Rakefile. Otherwise an error is returned.<br/>
+Furthermore without any additional parameters, debug mode is assumed.
+
+If **`RELEASE`** is set to any value, compilation is executed with optimizations **and** debugging set to on.
+
+
+## Examples:
+
+1.     rake
+       Uses the native host toolchain as defined in rake/toolchain/environment-setup-native-linux-gnu
+
+1.     rake all RELEASE=1
+       Same as above but a release build will be triggered
+
+1.     TOOLCHAIN_ENV=/data/eldk-5.3/nitrogen/environment-setup-armv7a-vfp-neon-linux-gnueabi rake all
+       Cross compiles in debug mode with the cross compiler definitions found in provided ELDK-5.3 environment
+       file.<br/>In this particular case it would cross compile with the armv7a-vfp-neon gcc of a 5.3 ELDK
+
+
+
+## Shell autocompletion for rake:
+
+If your shell is bash and if you'd like to save on key presses when trying to find out which rake task to run, add bash autocompletion for rake tasks like this:
+
+1. download https://github.com/mernen/completion-ruby/blob/master/completion-rake
+1.	copy downloaded file to /etc/bash_completion.d/rake
+
+
+* * *
+
+## Reference
+
+### prj.rake settings
 Here is an overview with explanations of the settings that can be specified in the subprojects **prj.rake** file:
 
     # Project type, possible values are APP for applications, LIB for static libraries,
@@ -102,164 +329,7 @@ Here is an overview with explanations of the settings that can be specified in t
     # E.g. 'arm-linux-gnueabi i686-linux-gnu'
     IGNORED_PLATFORMS = ''
 
-### Adaptability
-In most cases you have already a bunch of source code in a certain directory hierarchy available. It's easy to integrate 3rdparty projects or your own existing source codes into RakeOE. Just copy the top level directory inside the configured source folder and drop appropriate prj.rake file(s) into it.<br>
-<br/>
-This prj.rake directive controls where RakeOE searches for source and include files:
 
-    ADD_SOURCE_DIRS = '<dir1> <dir2> ... <dirn>'
-
-This directive controls where RakeOE searches for include files:
-
-    ADD_INC_DIRS = '<dir1> <dir2> ... <dirn>'
-    
-Directories should always be relative to the subprojects directory.<br/>
-<br/>
-You can exclude specific source files from the build by specifiying:
-
-    IGNORED_SOURCES = '<src1> <src2> ... <srcn>'
-    
-
-### Dependencies
-When using multiple subprojects with libraries, one can build a dependency chain between library => library and application => library. Those dependencies are taken into account for build order, include paths and linkage.<br/>
-<br/>
-To enable dependency from one subproject to another library subproject, use the following setting in the subprojects prj.rake file:
-
-    ADD_LIBS = '<lib1> <lib2> ... <libn>'
-
-To export an include directory for other subprojects to be used for compilation, specify in your prj.rake file:
-
-    EXPORTED_INC_DIRS = '<dir1> <dir2> ... <dirn>'
-
-Recursive dependencies are detected and an error is given in this case.<br/>
-
-### TDD
-RakeOE has built-in support for unit testing. If the configuration has the property RakeOE::Config.test_fw set, it searches in the namespace 'lib' for a subproject with the exact same name and uses this library specifically for generation of additional test cases.<br/>
-<br/>
-The following prj.rake directive enables subproject specific unit tests:
-
-    TEST_SOURCE_DIRS  = '<dir1> <dir2> ... <dirn>'
-    
-
-
-### Qt
-RakeOE has built-in support for Qt. It will automatically parse header files in Qt enabled sub projects and run the moc compiler on them if a **Q_OBJECT** declaration is encountered. Build settings of the used Qt framework have to be provided by the platform file.<br/>
-<br>
-To enable Qt in your subproject, use the following setting in the subprojects prj.rake file:
-
-    USE_QT = 1
-    
-### Usage friendliness
-There are "top level" rake tasks which are documented and lower level rake tasks that are not. All application and library subprojects are top level rake tasks. If there are tests present, those are also top level rake tasks.<br/>
-<br/>
-To get a list of all top level rake tasks, type at the command line:
-
-    rake -T
-
-All final and intermediate build steps can be executed with all dependencies managed automatically. You can specify to build just a single object or moc file because all generated files are in fact low level rake tasks.<br/>
-<br/>
-To get a list of all rake tasks (including low level rake tasks), type at the command line:
-
-    rake -T -A
-
-    
-### Versioning
-You can pass a version string to all compiled files via environment variable **SW_VERSION_ENV**. The content of this environment variable is passed to the build in CFLAGS/CXXFLAGS as **-DPROGRAM_VERSION**. The default value in case no such environment variable is present is "unversioned".
-
-
-## Basic usage:
-
-You need a top level Rakefile where you require the rakeoe gem, create a RakeOE::Config object and initialize
-the project by calling RakeOE::init.<br/>
-<br/>
-This is the minimal Rakefile you need:
-
-    require 'rakeoe'
-    
-    RakeOE::init(RakeOE::Config.new)
-
-Here only defaults are used and the following assumptions are made:
-
-#### Directory layout
-
-    project-root
-        ├── build
-        │   └── <platform>
-        │       ├── dbg
-        │       │   ├── apps
-        │       │   └── libs
-        │       └── release
-        │           ├── apps
-        │           └── libs
-        ├── Rakefile
-        └── src
-            ├── 3rdparty
-            │   └── 3rdpartylibA
-            │       └── prj.rake
-            ├── app
-            │   └── appA
-            │       └── prj.rake
-            └── lib
-                └── libB
-                    └── prj.rake
-
-You define subprojects somewhere beneath the root directory each with a prj.rake file inside. Any number of subprojects can be added like this. RakeOE knows apps, static and dynamic libraries. You can make apps and libraries dependent on other libraries. All build dependencies are then handled automatically.<br/>
-
-    rake <target> <TOOLCHAIN_ENV=filename> <RELEASE=1>
-
-
-Use **` rake all`**<br/>
-to compile all applications and libraries
-
-Use **` rake app:all`**<br/>
-to compile only applications
-
-Use **` rake lib:all`**<br/>
-to compile only libraries
-
-Use **` rake test`**<br/>
-to execute all unit tests for applications/libraries
-
-Use **` rake -T `**<br/>
-for a list of important targets with explanation.
-
-Use **` rake -T -A `**<br/>
-for a list of all possible targets.
-
-
-If no parameter given, **`rake all`** is assumed and the native compiler of the host system is used.<br/>
-Furthermore without any parameters, no compiler optimization settings are enabled.
-
-If **`RELEASE`** is set to any value, compilation is executed with optimizations **and** debugging set to on.
-
-By setting the variable **`TOOLCHAIN_ENV`**, the native toolchain settings can be overwritten with the environment file.<br/>
-from OpenEmbedded. This file is parsed by RakeOE and configures the specific toolchain settings.
-
-## Examples:
-
-1.     **`rake`**
-       Uses the native host toolchain as defined in rake/toolchain/environment-setup-native-linux-gnu
-
-1.     **`rake all RELEASE=1`**
-       Same as above but a release build will be triggered
-
-1.     **`rake all TOOLCHAIN_ENV=/data/eldk-5.3/nitrogen/environment-setup-armv7a-vfp-neon-linux-gnueabi`**
-       Cross compiles in debug mode with the cross compiler definitions found in provided ELDK-5.3 environment
-       file.<br/>In this particular case it would cross compile with the armv7a-vfp-neon gcc of a 5.3 ELDK
-
-
-
-## Shell autocompletion for rake:
-
-If you'd like to save on key presses when trying to find out which rake task to run, add bash autocompletion for rake tasks like this:
-
-1. 	download https://github.com/mernen/completion-ruby/blob/master/completion-rake
-1.	copy downloaded file to /etc/bash_completion.d/rake
-
-
-* * *
-
-## Defaults:
 
 ### Directory layout
 The build systems assumes a directory layout similar to this:
@@ -273,18 +343,11 @@ The build systems assumes a directory layout similar to this:
         │       └── release
         │           ├── apps
         │           └── libs
-        ├── rake
         ├── Rakefile
         └── src
             ├── 3rdparty
-            │   └── CppUTest
-            │       └── prj.rake
             ├── app
-            │   └── appA
-            │       └── prj.rake
             └── lib
-                └── libB
-                    └── prj.rake
 
 ####build/
 The build sub directory contains all build artefacts. `<platform>` is the platform specific build directory. For each unique platform a new build<br/>
@@ -297,20 +360,16 @@ binaries from the previous build configuration a separate new directory is used.
 
 The build directory setting can be changed via Rakefile.<br/>
 
-####rake/
-In this directory most build system relevant files and classes can be found. Most are internal and typically will not<br/>
-be changed by the user.
 
 ####Rakefile
-This file is the main Rakefile and will be automatically parsed by Rake. You can do configuration changes here like setting<br/>
-paths of source/build directories, file suffix assignments, etc.
+This file is the main Rakefile and will be automatically parsed by Rake. You can do configuration changes here like setting paths of source/build directories, file suffix assignments, etc.
 
 ####src/
 The RakeOE build system knows the build primitives *library* and *application*. It expects libraries and<br/>
 applications to be in separate source directories.<br/>
 
 By default these are in `src/lib` and `src/app`. The directory `src/3rdparty/` is treated by RakeOE as a normal library<br/>
-directory and is meant as structural separation between 3rd party components that are not part of the platform SDK and<br/>
+directory and is meant as structural separation between 3rd party components that are not part of the platform SDK and
 project specific libraries in `src/lib`.<br/>
 The directory `src/app/appA` contains some user application project and `src/lib/libB` some user library project.<br/>
 As mentioned above all those projects beneath `src/` have to contain a `prj.rake` file.
