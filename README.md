@@ -122,7 +122,7 @@ To export an include directory for other subprojects to be used for compilation,
 
 Recursive dependencies are detected and an error is given in this case.<br/>
 
-### TDD
+### Test Driven Development
 RakeOE has built-in support for unit testing and test driven develpoment (TDD). If the configuration has the property `RakeOE::Config.test_fw` set, it searches in the namespace `lib:` for a subproject with the exact same name and uses this library to be linked against encountered test cases. There is only one test runner per subproject you can use.<br/>
 <br/>
 The following prj.rake directive enables subproject specific unit tests:
@@ -314,6 +314,11 @@ Here is an overview with explanations of the settings that can be specified in t
     # White space separated list of ignored source files. These will be excluded from compilation.
     IGNORED_SOURCES = ''
 
+    # Exported include directories in case of library projects. These are the directories which will be used
+    # for other projects that depend on this project. Include paths listed here need not to be added to the ADD_INC_DIRS
+    # variable.
+    EXPORTED_INC_DIRS = 'include'
+
     # Additional white space separated list of sub directories this project uses for finding includes.
     # By default the subdirectory 'include/' is always supposed.
     ADD_INC_DIRS = ''
@@ -348,8 +353,6 @@ Here is an overview with explanations of the settings that can be specified in t
     # Possible values depend on your toolchain.
     # E.g. 'arm-linux-gnueabi i686-linux-gnu'
     IGNORED_PLATFORMS = ''
-
-
 
 ### Directory layout
 The build systems assumes a directory layout similar to this:

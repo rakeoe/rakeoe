@@ -1,6 +1,8 @@
 # -*- ruby -*-
 require 'rake'
 
+# XXX DS: here we should use Rake::pathmap for all mapping of source => destination files
+
 module RakeOE
   
   # Base class for all projects that assemble binary data
@@ -239,9 +241,9 @@ module RakeOE
     end
 
 
-    # Returns if any test directories are set
+    # Returns if any test sources found
     def has_tests?
-      return @test_dirs.any?
+      return @test_srcs.any?
     end
 
     # Loads dependency files if already generated
