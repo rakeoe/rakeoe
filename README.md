@@ -13,11 +13,17 @@ RakeOE uses OpenEmbedded / Yocto environment files to automatically pick up all 
 <br/>
 The toolchain has to be [gcc](http://gcc.gnu.org/) compatible at the moment, i.e. has to implement the **-dumpmachine**, **-MM**, **-MF** and **-MT** options among others. [Clang](http://clang.llvm.org/) qualifies for that as well.
 
+## Acknowledgements
+
+The work on this build system has been kindly sponsored by [ifm syntron](http://www.ifm.com/ifmgb/web/home.htm)<br/>
+![ifm syntron](http://www.ifm.com/img/head_logo.gif)
+
 
 ## Prerequisites
 
 ### Ruby
-RakeOE is based on Rake. Rake comes bundled with Ruby. Therefore you should have installed a recent [Ruby version](http://www.ruby-lang.org/en/ "[Latest Ruby") on your development machine. If using a unixoid system (like Linux / Mac OS X), it's recommended to use [rvm](https://rvm.io/) or [rbenv](https://github.com/sstephenson/rbenv) for managing your ruby installation, as the default ruby installation on those systems might be outdated. If on Windows, use the default Windows Ruby installer and follow the installation instruction for your specific Windows version. Required is **Ruby >= 2.0.0**.
+RakeOE is based on Rake. Rake comes bundled with Ruby. Therefore you should have installed a recent [Ruby version](http://www.ruby-lang.org/en/ "[Latest Ruby") on your development machine. If using a unixoid system (like Linux / Mac OS X), it's recommended to use [rvm](https://rvm.io/) or [rbenv](https://github.com/sstephenson/rbenv) for managing your ruby installation, as the default ruby installation on those systems might be outdated. If on Windows, use the default Windows Ruby installer and follow the installation instruction for your specific Windows version.<br/>
+Required is **Ruby >= 2.0.0**.
 
 ### Host OS
 RakeOE has been tested on Linux, Windows(XP,7) and Mac OS X. It should work on whatever platform Ruby/Rake runs on.<br/>
@@ -42,6 +48,20 @@ RakeOE has been tested with the following Linux toolchains:
 1.      Ubuntu 12.04 native (32-Bit / 64-Bit)
 1.      SuSe Enterprise 11 native
 
+## Installation
+
+Add this line to your application's Gemfile:
+
+    gem 'rakeoe'
+
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    $ gem install rakeoe
+    
 ##  Features
 ### Subprojects
 Any subdirectory inside the configured source directories will be scanned for **prj.rake** files. This file contains settings for building libraries or applications and defining dependencies. Any subdirectory that has such a prj.rake file will be automatically converted into a top level rake task where the directory name is used as the task name and the general project type as its top level namespace.</br>
@@ -375,24 +395,6 @@ The directory `src/app/appA` contains some user application project and `src/lib
 As mentioned above all those projects beneath `src/` have to contain a `prj.rake` file.
 
 The source directory setting can be changed via Rakefile.<br/>
-
-## Installation
-
-Add this line to your application's Gemfile:
-
-    gem 'rakeoe'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install rakeoe
-
-## Usage
-
-TODO: Write usage instructions here
 
 ## Contributing
 
