@@ -1,15 +1,19 @@
+[![Gem Version](https://badge.fury.io/rb/rakeoe.png)](http://badge.fury.io/rb/rakeoe)
+
 # RakeOE : Rake Optimized for Embedded
 
 **A build system for test driven Embedded C/C++ Development based on Ruby rake**
 
-RakeOE is a build system for application development. It can parse OpenEmbedded / Yocto environment files.<br/>
-In this way it knows how to cross compile in whatever target platform the cross compiler builds.<br/>
-It uses automatically the appropriate include paths and libraries of the given platform.<br/>
-If not otherwise specified, it uses the native toolchain of the host platform.<br/>
-
+RakeOE is a build system for application/library development. The aim of RakeOE is to make embedded C/C++ development as easy and straight-forward as possible from the point of view of build management. It runs on Windows, Linux and Mac OSX.<br/>
 RakeOE uses a *convention over configuration* paradigm to enable a fast jump start for developers.<br/>
-E.g. it assumes that the project follows a certain directory hierarchy or how sub projects are organized.<br/>
 It is possible to override default settings, though one can get a long way without doing so.<br/>
+<br/>
+It uses OpenEmbedded / Yocto environment files to automatically pick up all appropriate paths and flags for the given build platform. In this way it supports cross compilation in whatever target platform the cross compiler builds. But it's also possible and encouraged to use it for native host development.<br/>
+The toolchain has to be gcc compatible at the moment, e.g. has to implement the -dumpmachine, -MM, -MF and -MT options. Clang qualifies for that as well.<br/>
+<br/>
+
+
+
 
 ## Prerequisites
 ### OS
@@ -21,7 +25,7 @@ Besides compilation, gcc is used e.g. for header file dependency generation or p
 
 ### Ruby
 RakeOE is based on Rake. Rake comes bundled with Ruby. Therefore you should have installed a recent [Ruby version](http://www.ruby-lang.org/en/ "[Latest Ruby") on your development machine.<br/>
-Recommended is **Ruby >= 2.0.0**.
+Required is **Ruby >= 2.0.0**.
 
 ### OpenEmbedded / Yocto
 If you want to use RakeOE for cross development, you should also have some flavour of OpenEmbedded installed on your host platform.<br/> When cross compilating for target platforms via Yocto/OpenEmbedded, a Linux host machine is a must.<br/>
@@ -34,8 +38,7 @@ for building libraries or applications and defining dependencies. Any subproject
 picked up for building.
 
 ### Qt
-RakeOE has built-in support for Qt. It will automatically parse header files in Qt enabled sub projects and run the moc compiler <br/>
-on them if a **Q_OBJECT** declaration is encountered.
+RakeOE has built-in support for Qt. It will automatically parse header files in Qt enabled sub projects and run the moc compiler on them if a **Q_OBJECT** declaration is encountered.
 
 ### Subproject specific settings
 Here is an overview of the settings that can be specified in the subprojects **prj.rake** file.<br/>
@@ -95,6 +98,13 @@ The default value in case no such environment variable is present is "unversione
 
 
 ## Usage:
+
+You need a top level Rakefile where you require the rakeoe gem, create a RakeOE::Config object and initialize
+the project by calling RakeOE::init.
+
+
+You define subprojects somewhere beneath the root directory each with a prj.rake file inside. Any number of subprojects can be added like this. RakeOE knows apps, static and dynamic libraries. You can make apps and libraries dependent on other libraries. All build dependencies are then handled automatically.<br/>
+
     rake <target> <TOOLCHAIN_ENV=filename> <RELEASE=1>
 
 
