@@ -19,7 +19,7 @@ The toolchain has to be gcc compatible at the moment, e.g. has to implement the 
 RakeOE is based on Rake. Rake comes bundled with Ruby. Therefore you should have installed a recent [Ruby version](http://www.ruby-lang.org/en/ "[Latest Ruby") on your development machine. If using a unixoid system (like Linux / Mac OS X), it's recommended to use [rvm](https://rvm.io/) or [rbenv](https://github.com/sstephenson/rbenv) for managing your ruby installation, as the default ruby installation on those systems might be outdated. If on Windows, use the default Windows installer and follow the installation instruction for your specific Windows version. Required is **Ruby >= 2.0.0**.
 
 ### OS
-Rake OE has been tested on Linux, Windows(XP,7) and Mac OSX. It should work on whatever platform Ruby/Rake runs on.<br/>
+Rake OE has been tested on Linux, Windows(XP,7) and Mac OS X. It should work on whatever platform Ruby/Rake runs on.<br/>
 
 ### Toolchain
 For the time beeing, **gcc** or a gcc-compatible compiler like **clang** is required. Besides compilation, gcc is used e.g. for header file dependency generation or platform informations.<br/>
@@ -35,13 +35,14 @@ RakeOE has been tested with [ELDK-5.3/Yocto Danny](http://www.denx.de/wiki/ELDK-
 
 ##  Features
 ### Subprojects
-Any subdirectory inside the configured source directories will be scanned for **prj.rake** files. This file contains settings for building libraries or applications and defining dependencies. Any subdirectory that has such a prj.rake file will be automatically converted into a rake task where the directory name is used as the task name and the project type as its top level namespace.</br>
+Any subdirectory inside the configured source directories will be scanned for **prj.rake** files. This file contains settings for building libraries or applications and defining dependencies. Any subdirectory that has such a prj.rake file will be automatically converted into a top level rake task where the directory name is used as the task name and the general project type as its top level namespace.</br>
 </br>
-The project can then be built simply by typing at the command line:
+The project can then be built by typing:
 
-    rake <project type>:<project name>
+    rake <namespace>:<project name>
     
-There are 3 buildable project types available: **APP** for applications, **LIB** for a static libraries and **SOLIB** for a dynamic libraries.
+There are 2 buildable namespaces available: **APP** for applications, **LIB** for static/dynamic libraries.<br/>
+There are a multitude of convenience rake tasks generated as well. More of that below.
 
 #### Settings
 Here is an overview with explanations of the settings that can be specified in the subprojects **prj.rake** file:
@@ -92,12 +93,29 @@ Here is an overview with explanations of the settings that can be specified in t
     # E.g. 'arm-linux-gnueabi i686-linux-gnu'
     IGNORED_PLATFORMS = ''
 
+### Adaptability
+In most cases you have already a bunch of source code in a certain directory hierarchy available. It's easy to integrate 3rdparty projects or your own existing source codes into RakeOE. Just copy the top level directory inside the configured source folder and drop appropriate prj.rake file(s) into it.<br>
+<br/>
+This prj.rake directive controls where RakeOE searches for source and include files:
+
+    ADD_SRC_DIRS = '<dir1> <dir2> ... <dirn>'
+
+This directive controls where RakeOE searches for include files:
+
+    ADD_INC_DIRS = '<dir1> <dir2> ... <dirn>'
+    
+Directories should always be relative to the subprojects directory.
+
 ### Dependencies
 When using multiple subprojects with libraries, one can build a dependency chain between library => library and application => library. Those dependencies are taken into account for build order, include paths and linkage.<br/>
 <br/>
 To enable dependency from one subproject to another library subproject, use the following setting in the subprojects prj.rake file:
 
     ADD_LIBS = '<lib1> <lib2> ... <libn>'
+
+To export an include directory for other subprojects to be used for compilation, specify in your prj.rake file:
+
+    EXPORTED_INC_DIRS = '<dir1> <dir2> ... <dirn>'
 
 Recursive dependencies are detected and an error is given in this case.<br/>
 
@@ -115,7 +133,7 @@ To get a list of all top level rake tasks, type at the command line:
 
     rake -T
 
-All final and intermediate build steps can be executed with all dependencies managed automatically. You can specify to build just a single object file or a moc file because all generated files are in fact low level rake tasks.<br/>
+All final and intermediate build steps can be executed with all dependencies managed automatically. You can specify to build just a single object or moc file because all generated files are in fact low level rake tasks.<br/>
 <br/>
 To get a list of all rake tasks (including low level rake tasks), type at the command line:
 
