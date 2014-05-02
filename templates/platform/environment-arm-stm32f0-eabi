@@ -1,0 +1,46 @@
+export PATH="/opt/install/gcc-arm-none-eabi-4_8-2013q4/bin/:$PATH"
+export PKG_CONFIG_SYSROOT_DIR=
+export PKG_CONFIG_PATH=
+export CONFIG_SITE=
+export CC="arm-none-eabi-gcc"
+export CXX="arm-none-eabi-g++"
+export CPP="arm-none-eabi-gcc -E"
+export AS="arm-none-eabi-as"
+export LD="arm-none-eabi-ld"
+export GDB="arm-none-eabi-gdb"
+export STRIP="arm-none-eabi-strip"
+export RANLIB="arm-none-eabi-ranlib"
+export OBJCOPY="arm-none-eabi-objcopy"
+export OBJDUMP="arm-none-eabi-objdump"
+export AR="arm-none-eabi-ar"
+export NM="arm-none-eabi-nm"
+export SIZE="arm-none-eabi-size"
+export M4=
+export TARGET_PREFIX=arm-none-eabi-
+export CONFIGURE_FLAGS=
+export CFLAGS=' -std=gnu99 -mcpu=cortex-m0 -mthumb -fomit-frame-pointer -fdata-sections -ffunction-sections -D__ASSEMBLY__'
+export CXXFLAGS=' -mcpu=cortex-m0 -mthumb -fomit-frame-pointer -fdata-sections -ffunction-sections -D__ASSEMBLY__'
+export LDFLAGS=' -mcpu=cortex-m0 -mthumb -g -nostartfiles -Wl,--gc-sections -Xlinker -Tlinker/stm32f0_linker.ld'
+export CPPFLAGS=
+export OECORE_NATIVE_SYSROOT=
+export OECORE_TARGET_SYSROOT=
+export OECORE_ACLOCAL_OPTS=
+export OECORE_DISTRO_VERSION=
+export OECORE_SDK_VERSION=
+export OE_QMAKE_CFLAGS=
+export OE_QMAKE_CXXFLAGS=
+export OE_QMAKE_LDFLAGS=
+export OE_QMAKE_CC=
+export OE_QMAKE_CXX=
+export OE_QMAKE_LINK=
+export OE_QMAKE_AR=
+export OE_QMAKE_LIBDIR_QT=
+export OE_QMAKE_INCDIR_QT=
+export OE_QMAKE_MOC=
+export OE_QMAKE_UIC=
+export OE_QMAKE_UIC3=
+export OE_QMAKE_RCC=
+export OE_QMAKE_QDBUSCPP2XML=
+export OE_QMAKE_QDBUSXML2CPP=
+export OE_QMAKE_QT_CONFIG=
+export QMAKESPEC=
