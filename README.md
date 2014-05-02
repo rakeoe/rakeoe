@@ -4,45 +4,47 @@
 
 **A build system for test driven Embedded C/C++ Development based on Ruby rake**
 
-RakeOE is a build system for application/library development. The aim of RakeOE is to make embedded C/C++ development as easy and straight-forward as possible from the point of view of build management. It runs on Windows, Linux and Mac OSX.<br/>
-RakeOE uses a *convention over configuration* paradigm to enable a fast jump start for developers.<br/>
-It is possible to override default settings, though one can get a long way without doing so.<br/>
+RakeOE is a build system for application/library development. The aim of RakeOE is to make embedded C/C++ development as easy and straight-forward as possible from the point of view of build management. It's possible to use it on the command line or to integrate it into Eclipse CDT. It runs on Windows, Linux and Mac OS X.<br/>
 <br/>
-It uses OpenEmbedded / Yocto environment files to automatically pick up all appropriate paths and flags for the given build platform. In this way it supports cross compilation in whatever target platform the cross compiler builds. But it's also possible and encouraged to use it for native host development.<br/>
-The toolchain has to be gcc compatible at the moment, e.g. has to implement the -dumpmachine, -MM, -MF and -MT options. Clang qualifies for that as well.<br/>
+RakeOE uses a *convention over configuration* paradigm to enable a fast jump start for developers. It's meant to be used by the casual maker and professional C/C++ developer alike.<br/>
+Though it's possible to override defaults, tweak library specific platform flags and do all kind of configuration management settings, one can get a long way without doing so.<br/>
 <br/>
-
-
+RakeOE uses OpenEmbedded / Yocto environment files to automatically pick up all appropriate paths and flags for the given build platform. In this way it supports cross compilation in whatever target platform the cross compiler builds. But it's also possible and encouraged to use it for native host development.<br/>
+The toolchain has to be gcc compatible at the moment, e.g. has to implement the -dumpmachine, -MM, -MF and -MT options. Clang qualifies for that as well.
 
 
 ## Prerequisites
-### OS
-Rake OE has been tested on Linux, Windows and Mac OSX. It should work on whatever platform Ruby/Rake runs on.<br/>
-
-### GCC or GCC-compatible compiler
-For the time beeing, **gcc** or a gcc-compatible compiler like **clang** or **icc** is required.<br/>
-Besides compilation, gcc is used e.g. for header file dependency generation or platform information.
 
 ### Ruby
-RakeOE is based on Rake. Rake comes bundled with Ruby. Therefore you should have installed a recent [Ruby version](http://www.ruby-lang.org/en/ "[Latest Ruby") on your development machine.<br/>
-Required is **Ruby >= 2.0.0**.
+RakeOE is based on Rake. Rake comes bundled with Ruby. Therefore you should have installed a recent [Ruby version](http://www.ruby-lang.org/en/ "[Latest Ruby") on your development machine. If using a unixoid system (like Linux / Mac OS X), it's recommended to use [rvm](https://rvm.io/) or [rbenv](https://github.com/sstephenson/rbenv) for managing your ruby installation, as the default ruby installation on those systems might be outdated. If on Windows, use the default Windows installer and follow the installation instruction for your specific Windows version. Required is **Ruby >= 2.0.0**.
 
-### OpenEmbedded / Yocto
-If you want to use RakeOE for cross development, you should also have some flavour of OpenEmbedded installed on your host platform.<br/> When cross compilating for target platforms via Yocto/OpenEmbedded, a Linux host machine is a must.<br/>
+### OS
+Rake OE has been tested on Linux, Windows(XP,7) and Mac OSX. It should work on whatever platform Ruby/Rake runs on.<br/>
+
+### Toolchain
+For the time beeing, **gcc** or a gcc-compatible compiler like **clang** is required. Besides compilation, gcc is used e.g. for header file dependency generation or platform informations.<br/>
+<br/>
+If you'd want to compile for ARM Cortex-M/R - compatibe microcontrollers, we recommend the [Launchpad ARM](https://launchpad.net/gcc-arm-embedded) toolchain. It's free and very well maintained.<br/>
+<br/>
+If you'd want to use RakeOE for Linux development, you have various options:
+
+1.      Choose the native toolchain or one of the zillions cross-toolchains out there and adapt one of the available platform files
+1.      Install some flavour of Yocto/OpenEmbedded on your host platform and use the provided environment-XXX platform file
+ 
 RakeOE has been tested with [ELDK-5.3/Yocto Danny](http://www.denx.de/wiki/ELDK-5/ "[ELDK-5.3/Yocto Danny") but other OpenEmbedded based toolchains should work similarly well.<br/>
 
 ##  Features
-### Subproject autodiscovery
-Any subdirectory inside the configured source directories will be scanned for a **prj.rake** file. This file contains standardized settings<br/>
-for building libraries or applications and defining dependencies. Any subproject that has such a prj.rake file will be automatically<br/>
-picked up for building.
+### Subprojects
+Any subdirectory inside the configured source directories will be scanned for **prj.rake** files. This file contains settings for building libraries or applications and defining dependencies. Any subdirectory that has such a prj.rake file will be automatically converted into a rake task where the directory name is used as the task name and the project type as its top level namespace.</br>
+</br>
+The project can then be built simply by typing at the command line:
 
-### Qt
-RakeOE has built-in support for Qt. It will automatically parse header files in Qt enabled sub projects and run the moc compiler on them if a **Q_OBJECT** declaration is encountered.
+    rake <project type>:<project name>
+    
+There are 3 buildable project types available: **APP** for applications, **LIB** for a static libraries and **SOLIB** for a dynamic libraries.
 
-### Subproject specific settings
-Here is an overview of the settings that can be specified in the subprojects **prj.rake** file.<br/>
-See the documentation of each setting for explanations.
+#### Settings
+Here is an overview with explanations of the settings that can be specified in the subprojects **prj.rake** file:
 
     # Project type, possible values are APP for applications, LIB for static libraries,
     # SOLIB for shared objects and DISABLED if this project should be excluded from building.
@@ -90,11 +92,38 @@ See the documentation of each setting for explanations.
     # E.g. 'arm-linux-gnueabi i686-linux-gnu'
     IGNORED_PLATFORMS = ''
 
+### Dependencies
+When using multiple subprojects with libraries, one can build a dependency chain between library => library and application => library. Those dependencies are taken into account for build order, include paths and linkage.<br/>
+<br/>
+To enable dependency from one subproject to another library subproject, use the following setting in the subprojects prj.rake file:
 
-### Pass Version String
-You can pass a version string to all compiled files via environment variable SW_VERSION_ENV. The content of this environment
-variable is passed to the build in CFLAGS/CXXFLAGS as -DPROGRAM_VERSION.
-The default value in case no such environment variable is present is "unversioned".
+    ADD_LIBS = '<lib1> <lib2> ... <libn>'
+
+Recursive dependencies are detected and an error is given in this case.<br/>
+
+### Qt
+RakeOE has built-in support for Qt. It will automatically parse header files in Qt enabled sub projects and run the moc compiler on them if a **Q_OBJECT** declaration is encountered. Build settings of the used Qt framework have to be provided by the platform file.<br/>
+<br>
+To enable Qt in your subproject, use the following setting in the subprojects prj.rake file:
+
+    USE_QT = 1
+    
+### Usage friendliness
+There are "top level" rake tasks which are documented and lower level rake tasks that are not. All application and library subprojects are top level rake tasks. If there are tests present, those are also top level rake tasks.<br/>
+<br/>
+To get a list of all top level rake tasks, type at the command line:
+
+    rake -T
+
+All final and intermediate build steps can be executed with all dependencies managed automatically. You can specify to build just a single object file or a moc file because all generated files are in fact low level rake tasks.<br/>
+<br/>
+To get a list of all rake tasks (including low level rake tasks), type at the command line:
+
+    rake -T -A
+
+    
+### Versioning
+You can pass a version string to all compiled files via environment variable **SW_VERSION_ENV**. The content of this environment variable is passed to the build in CFLAGS/CXXFLAGS as **-DPROGRAM_VERSION**. The default value in case no such environment variable is present is "unversioned".
 
 
 ## Usage:
