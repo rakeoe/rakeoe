@@ -4,9 +4,9 @@
 
 **A build system for test driven Embedded C/C++ Development based on Ruby rake**
 
-RakeOE is a build system for application/library development. The aim of RakeOE is to make embedded C/C++ development as easy and straight-forward as possible from the point of view of build management. It's possible to use it on the command line or to integrate it into Eclipse CDT. It runs on Windows, Linux and Mac OS X.<br/>
+RakeOE is a build system for application/library development. RakeOE utilizes the power of [Rake](http://rake.rubyforge.org/) and the easyness of Ruby to make build management for embedded C/C++ development as easy and straight-forward as possible. It's possible to use it on the command line or to integrate it into an IDE like Eclipse. It runs on Windows, Linux and Mac OS X.<br/>
 <br/>
-RakeOE uses a *convention over configuration* paradigm to enable a fast jump start for developers. It's meant to be used by the casual maker and professional C/C++ developer alike.<br/>
+RakeOE uses the *convention over configuration* paradigm to enable a fast jump start for developers. It's meant to be used by the casual maker and professional C/C++ developer alike.<br/>
 Though it's possible to override defaults, tweak library specific platform flags and do all kind of configuration management settings, one can get a long way without doing so.<br/>
 <br/>
 RakeOE uses OpenEmbedded / Yocto environment files to automatically pick up all appropriate paths and flags for the given build platform. In this way it supports cross compilation in whatever target platform the cross compiler builds. But it's also possible and encouraged to use it for native host development.<br/>
@@ -29,8 +29,9 @@ The work on this build system has been kindly sponsored by [ifm syntron](http://
 ## Diving In
 
 * Look at the [examples](https://github.com/rakeoe/rakeoe/wiki/Examples)
-* Add [bash autocompletion](https://github.com/rakeoe/rakeoe/wiki/Shell-autocompletion-for-rake)
-* Study the [reference](https://github.com/rakeoe/rakeoe/wiki/Reference) section
+* Clone the [Demo projects](https://github.com/rakeoe/rakeoe/wiki/Demo-Projects)
+* Add [Bash autocompletion](https://github.com/rakeoe/rakeoe/wiki/Shell-autocompletion-for-rake)
+* Study the [Reference](https://github.com/rakeoe/rakeoe/wiki/Reference) section
 
 ## License
 
