@@ -4,7 +4,7 @@ require 'rake'
 
 
 module RakeOE
-  
+
   # Finds all project files and reads them into memory
   # Maps project path => project file
   # XXX DS: IDEA: generate all runtime dependencies at the beginning for each prj,
@@ -84,10 +84,24 @@ module RakeOE
       @prj_list[prj_type].each_pair &block
     end
 
+
+    # Returns all entries for given project types as an array
+    # of reversed prj_name => prj_type mappings
+    #
+    # @param prj_types [Array]    project types as defined by the PRJ_TYPE property
+    #
+    # @return [Array]   Array of hashes prj_name => prj_type
+    #
+    def self.entries_reversed(prj_types)
+      prj_types.each_with_object(Hash.new) do |prj_type, h|
+        h.merge!(@prj_list[prj_type].reverse) if @prj_list.has_key?(prj_type)
+      end
+    end
+
     #
     # SEMANTIC METHODS
     #
-    
+
     # Returns exported include directories of a library project.
     # If given name does not exist in local library projects, an empty array
     # is returned.

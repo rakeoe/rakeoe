@@ -451,6 +451,28 @@ module RakeOE
       end
     end
 
+
+    # Returns unique list of dependent libraries for given parameter.
+    #
+    # @param [Array] libs     Libraries for using dependent libs
+    #
+    # @return [Set]           All dependent libs
+    #
+    def all_lib_deps(libs)
+      @lib_type ||= PrjFileCache.entries_reversed(['LIB', 'SOLIB'])
+      @dependent_libs ||= Set.new
+
+      libs.each do |name|
+        if (@lib_cache.has_key?(name))
+          unless @dependent_libs.contain?(name)
+            @dependent_libs += search_libs_recursive(PrjFileCache.get(@lib_type[name], name, 'ADD_LIBS'))
+          end
+        end
+      end
+      @dependent_libs
+    end
+
+
     # Search dependent libraries as specified in ADD_LIBS setting
     # of prj.rake file
     #
