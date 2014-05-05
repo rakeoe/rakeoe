@@ -1,5 +1,5 @@
 module RakeOE
-  
+
   class TestFramework
 
     #
@@ -28,7 +28,6 @@ module RakeOE
     # Returns test framework include path
     def include
       raise 'No test framework include directory exported!' if @params[:include_dir].empty?
-
       @params[:include_dir]
     end
 
