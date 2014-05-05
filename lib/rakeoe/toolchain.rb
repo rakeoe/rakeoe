@@ -218,7 +218,7 @@ class Toolchain
       @settings['CFLAGS'] += ' -fPIC'
     end
     # !! don't change order of the following string components without care !!
-    @settings['LDFLAGS'] = @settings['LDFLAGS'] + " -L #{@settings['LIB_OUT']} #{@settings['SYS_LFLAGS']} -Wl,--no-as-needed -Wl,--start-group"
+    @settings['LDFLAGS'] = @settings['LDFLAGS'] + " -L #{@settings['LIB_OUT']} #{@settings['SYS_LFLAGS']} -Wl,--start-group"
   end
 
   # Executes the command
