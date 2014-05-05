@@ -1,0 +1,48 @@
+#
+# Template for Yocto danny based ELDK-5.3 for armv7a based (e.g. Freescale i.MX6) processors
+#
+export PATH=/opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux/usr/bin:/opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux/usr/bin/armv7a-vfp-neon-linux-gnueabi:$PATH
+export PKG_CONFIG_SYSROOT_DIR=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi
+export PKG_CONFIG_PATH=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi/usr/lib/pkgconfig
+export CONFIG_SITE=/opt/eldk-5.3/armv7a/site-config-armv7a-vfp-neon-linux-gnueabi
+export CC="arm-linux-gnueabi-gcc  -march=armv7-a     -mthumb-interwork -mfloat-abi=softfp -mfpu=neon --sysroot=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi"
+export CXX="arm-linux-gnueabi-g++  -march=armv7-a     -mthumb-interwork -mfloat-abi=softfp -mfpu=neon --sysroot=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi"
+export CPP="arm-linux-gnueabi-gcc -E  -march=armv7-a     -mthumb-interwork -mfloat-abi=softfp -mfpu=neon --sysroot=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi"
+export AS="arm-linux-gnueabi-as "
+export LD="arm-linux-gnueabi-ld  --sysroot=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi"
+export GDB=arm-linux-gnueabi-gdb
+export STRIP=arm-linux-gnueabi-strip
+export RANLIB=arm-linux-gnueabi-ranlib
+export OBJCOPY=arm-linux-gnueabi-objcopy
+export OBJDUMP=arm-linux-gnueabi-objdump
+export AR=arm-linux-gnueabi-ar
+export NM=arm-linux-gnueabi-nm
+export M4=m4
+export TARGET_PREFIX=arm-linux-gnueabi-
+export CONFIGURE_FLAGS="--target=arm-linux-gnueabi --host=arm-linux-gnueabi --build=i686-linux --with-libtool-sysroot=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi"
+export CFLAGS=" -O2 -pipe -g -feliminate-unused-debug-types"
+export CXXFLAGS=" -O2 -pipe -g -feliminate-unused-debug-types -fpermissive"
+export LDFLAGS="-Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed"
+export CPPFLAGS=""
+export OECORE_NATIVE_SYSROOT="/opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux"
+export OECORE_TARGET_SYSROOT="/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi"
+export OECORE_ACLOCAL_OPTS="-I /opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux/usr/share/aclocal"
+export OECORE_DISTRO_VERSION="5.3"
+export OECORE_SDK_VERSION="5.3"
+export OE_QMAKE_CFLAGS="$CFLAGS"
+export OE_QMAKE_CXXFLAGS="$CXXFLAGS"
+export OE_QMAKE_LDFLAGS="$LDFLAGS"
+export OE_QMAKE_CC=arm-linux-gnueabi-gcc
+export OE_QMAKE_CXX=arm-linux-gnueabi-g++
+export OE_QMAKE_LINK=arm-linux-gnueabi-g++
+export OE_QMAKE_AR=arm-linux-gnueabi-ar
+export OE_QMAKE_LIBDIR_QT=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi//usr/lib
+export OE_QMAKE_INCDIR_QT=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi//usr/include/qtopia
+export OE_QMAKE_MOC=/opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux/usr/bin/moc4
+export OE_QMAKE_UIC=/opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux/usr/bin/uic4
+export OE_QMAKE_UIC3=/opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux/usr/bin/uic34
+export OE_QMAKE_RCC=/opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux/usr/bin/rcc4
+export OE_QMAKE_QDBUSCPP2XML=/opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux/usr/bin/qdbuscpp2xml4
+export OE_QMAKE_QDBUSXML2CPP=/opt/eldk-5.3/armv7a/sysroots/i686-eldk-linux/usr/bin/qdbusxml2cpp4
+export OE_QMAKE_QT_CONFIG=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi//usr/share/qtopia/mkspecs/qconfig.pri
+export QMAKESPEC=/opt/eldk-5.3/armv7a/sysroots/armv7a-vfp-neon-linux-gnueabi//usr/share/qtopia/mkspecs/linux-g++
