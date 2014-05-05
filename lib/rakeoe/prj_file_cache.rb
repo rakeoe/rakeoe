@@ -104,7 +104,9 @@ module RakeOE
         # try SOLIB
         exported_inc_dirs = self.get('SOLIB', name, 'EXPORTED_INC_DIRS')
         unless exported_inc_dirs.to_s.empty?
-          rv << self.get('SOLIB', name, 'PRJ_HOME') + '/' + dir
+          exported_inc_dirs.split.each do |dir|
+            rv << self.get('SOLIB', name, 'PRJ_HOME') + '/' + dir
+          end
         end
       else
         exported_inc_dirs.split.each do |dir|
