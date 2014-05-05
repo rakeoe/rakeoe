@@ -4,7 +4,7 @@ require 'rake'
 # XXX DS: here we should use Rake::pathmap for all mapping of source => destination files
 
 module RakeOE
-  
+
   # Base class for all projects that assemble binary data
   class BinaryBase
     include Rake::DSL
@@ -28,6 +28,7 @@ module RakeOE
 
       @name = params[:name]
       @settings = params[:settings]
+      fixup_settings
       @src_dir = @settings['PRJ_HOME']
       @bin_dir = params[:bin_dir]
       @tc = params[:toolchain]
@@ -82,18 +83,35 @@ module RakeOE
       end
 
       if (@settings['TEST_FRAMEWORK'].nil? or @settings['TEST_FRAMEWORK'].empty?)
-        @test_fw = @tc.default_test_framework        
+        @test_fw = @tc.default_test_framework
       else
         @test_fw = @tc.test_framework(@settings['TEST_FRAMEWORK'])
       end
 
       @test_binary =  "#{bin_dir}/#{name}-test"
-      @test_inc_dirs = @test_fw.include.join(' ')
+      @test_inc_dirs = @settings['TEST_SOURCE_DIRS'].empty? ? '' : @test_fw.include.join(' ')
 
       handle_prj_type
       handle_qt if '1' == @settings['USE_QT']
       # todo check all directories for existence ?
     end
+
+
+    # Fixes any missing settings from project file
+    def fixup_settings
+      @settings['ADD_SOURCE_DIRS'] ||= ''
+      @settings['IGNORED_SOURCES'] ||= ''
+      @settings['EXPORTED_INC_DIRS'] ||= ''
+      @settings['ADD_INC_DIRS'] ||= ''
+      @settings['TEST_SOURCE_DIRS'] ||= ''
+      @settings['ADD_CFLAGS'] ||= ''
+      @settings['ADD_CXXFLAGS'] ||= ''
+      @settings['ADD_LIBS'] ||= ''
+      @settings['ADD_LDFLAGS'] ||= ''
+      @settings['USE_QT'] ||= ''
+      @settings['IGNORED_PLATFORMS'] ||= ''
+    end
+
 
     # Check params given to #initialize
     #
