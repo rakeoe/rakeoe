@@ -11,6 +11,8 @@ module RakeOE
   # XXX DS: e.g. lib includes, source files, dependency files etc. and cache those as own variable in @prj_list
   class PrjFileCache
 
+    attr_accessor :prj_list
+
     # Introduce hash of projects. Contains list of project with key 'PRJ_TYPE'
     @prj_list = {}
 
