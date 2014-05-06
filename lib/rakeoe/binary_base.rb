@@ -465,7 +465,7 @@ module RakeOE
       libs.each do |name|
         if (@lib_cache.has_key?(name))
           unless @dependent_libs.contain?(name)
-            @dependent_libs += search_libs_recursive(PrjFileCache.get(@lib_type[name], name, 'ADD_LIBS'))
+            @dependent_libs += all_lib_deps(PrjFileCache.get(@lib_type[name], name, 'ADD_LIBS'))
           end
         end
       end
