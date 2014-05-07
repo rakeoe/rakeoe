@@ -11,7 +11,7 @@ Though it's possible to override defaults, tweak library specific platform flags
 <br/>
 RakeOE uses OpenEmbedded / Yocto environment files to automatically pick up all appropriate paths and flags for the given build platform. In this way it supports cross compilation in whatever target platform the cross compiler builds. But it's also possible and encouraged to use it for native host development.<br/>
 <br/>
-The toolchain has to be [gcc](http://gcc.gnu.org/) compatible at the moment, i.e. has to implement the **-dumpmachine**, **-MM**, **-MF** and **-MT** options among others. [Clang](http://clang.llvm.org/) qualifies for that as well.
+The toolchain has to be [gcc](http://gcc.gnu.org/) and GNU ld compatible at the moment, i.e. has to implement the **-dumpmachine**, **-MM**, **-MF**, **-MT** and **-Wl,--start-group** options among others.
 
 ## Acknowledgements
 
