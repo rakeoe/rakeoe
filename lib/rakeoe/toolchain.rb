@@ -218,7 +218,7 @@ class Toolchain
       @settings['CFLAGS'] += ' -fPIC'
     end
     # !! don't change order of the following string components without care !!
-    @settings['LDFLAGS'] = @settings['LDFLAGS'] + " -L #{@settings['LIB_OUT']} #{@settings['SYS_LFLAGS']} -Wl,--start-group"
+    @settings['LDFLAGS'] = @settings['LDFLAGS'] + " -L #{@settings['LIB_OUT']} #{@settings['SYS_LFLAGS']} -Wl,--no-as-needed -Wl,--start-group"
   end
 
   # Executes the command
@@ -294,6 +294,7 @@ class Toolchain
   # @return [String]      Linker line
   #
   def linker_line_for(libs)
+    return '' if (libs.nil? || libs.empty?)
     libs.map do |lib|
       settings = platform_settings_for(lib)
       if settings[:LDFLAGS].nil?
@@ -415,8 +416,9 @@ class Toolchain
   # @option params [Hash]   :settings project specific settings
   #
   def lib(params = {})
-    ldflags   = params[:settings]['ADD_LDFLAGS']
+    ldflags   = params[:settings]['ADD_LDFLAGS'] + ' ' + @settings['LDFLAGS']
     objs      = params[:objects].join(' ')
+    libs      = linker_line_for(params[:libs])
     extension = File.extname(params[:lib])
 
     case extension
@@ -425,7 +427,7 @@ class Toolchain
         # if archive hasn't changed
         sh "#{@settings['AR']} curv #{params[:lib]} #{objs} && #{@settings['TOUCH']} #{params[:lib]}"
       when '.so'
-        sh "#{@settings['CXX']} -shared  #{ldflags} #{objs} -o #{params[:lib]}"
+        sh "#{@settings['CXX']} -shared  #{ldflags} #{libs} #{objs} -o #{params[:lib]}"
       else
         raise "unsupported library extension (#{extension})!"
     end

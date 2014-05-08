@@ -35,9 +35,11 @@ module RakeOE
       task name => [binary]
 
       file binary => paths_of_local_libs + deps + objs do
+        prj_libs = search_libs(settings)
         tc.lib(:objects => objs,
-        :lib => binary,
-        :settings => @settings)
+               :lib => binary,
+               :libs => prj_libs[:all],
+               :settings => @settings)
       end
 
       if test_objs.any? && (tc.config.test_fw.size > 0)
