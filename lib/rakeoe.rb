@@ -25,6 +25,7 @@ module RakeOE
   # @return [RakeOE::Toolchain]         Toolchain object
   def init(config)
 
+    RakeOE::PrjFileCache.set_defaults(RakeOE::Default.prj_settings)
     RakeOE::PrjFileCache.sweep_recursive(config.directories[:apps] + config.directories[:libs])
 
     toolchain = RakeOE::Toolchain.new(config)

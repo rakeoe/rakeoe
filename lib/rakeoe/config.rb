@@ -24,7 +24,7 @@ module RakeOE
       #     :moc_header => '.h',                        Qt MOC file header
       #     :moc_source => '.cpp'                       Qt MOC file source
       # }
-      @suffixes=RakeOE::DEFAULT_SUFFIXES
+      @suffixes=RakeOE::Default.suffixes
       
       # Directories used for the project
       # This is a hash object with the following key => value mappings (examples):
@@ -33,7 +33,7 @@ module RakeOE
       #     :libs => %w[src/lib1 src/lib2],             Library top level directories
       #     :build => 'build'                           Build top level directory
       # }
-      @directories=RakeOE::DEFAULT_DIRS
+      @directories=RakeOE::Default.dirs
 
       # Platform configuration used for the project
       # This is the absolute path to the platform definition file
@@ -49,29 +49,32 @@ module RakeOE
       #
       # This parameter can be overridden via environment variable RELEASE. If the latter
       # is defined, this configuration variable has the value "release"
-      @release = ENV['RELEASE'].nil? ? RakeOE::DEFAULT_RELEASE : 'release'
+      @release = ENV['RELEASE'].nil? ? RakeOE::Default.release : 'release'
 
       # Test framework used for linking test case binaries
       # This takes the name of the test framework that has to be integrated into the project
       # library path.
       # RakeOE does not require a specific test framework, but CppUTest and CUnit are proposals
       # that have been tested to work fine.
-      @test_fw=RakeOE::DEFAULT_TEST_FW
+      @test_fw=RakeOE::Default.test_fw
 
       # Optimization levels used for compiling binaries (e.g. -O0, -O1, -O2, -O3, -Og).
       # Depending on the release mode, either @optimization_dbg or @optimization_release
       # is used
-      @optimization_dbg=RakeOE::DEFAULT_OPTIMIZATION_DBG
-      @optimization_release=RakeOE::DEFAULT_OPTIMIZATION_RELEASE
+      @optimization_dbg=RakeOE::Default.optimization_dbg
+      @optimization_release=RakeOE::Default.optimization_release
 
       # Language standard (e.g. -std=gnu99, -std=c++03, -std=c99, etc. )
-      @language_std_c=RakeOE::DEFAULT_LANGUAGE_STD_C
-      @language_std_cpp=RakeOE::DEFAULT_LANGUAGE_STD_CPP
+      @language_std_c=RakeOE::Default.lang_std_c
+      @language_std_cpp=RakeOE::Default.lang_std_cpp
 
       # Software version string
       #
       # This parameter can be overridden via environment variable SW_VERSION_ENV.
-      @sw_version = ENV['SW_VERSION_ENV'].nil? ? "#{RakeOE::DEFAULT_SW_VERSION}-#{@release}" : ENV['SW_VERSION_ENV']
+      @sw_version = ENV['SW_VERSION_ENV'].nil? ? "#{RakeOE::Default.sw_version}-#{@release}" : ENV['SW_VERSION_ENV']
+
+      # Project settings as specified in prj.rake file
+      @prj_settings = RakeOE::Default.prj_settings
     end
 
 

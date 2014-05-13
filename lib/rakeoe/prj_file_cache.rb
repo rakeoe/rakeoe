@@ -20,6 +20,11 @@ module RakeOE
     # GENERIC METHODS
     #
 
+    # Sets default properties that should be included for every found project file
+    def self.set_defaults(properties)
+      @defaults = properties
+    end
+
     # Search, read and parse all project files in given directories and add them to prj_list according
     # to their PRJ_TYPE setting.
     # @param dirs   List of directories to search recursively for prj.rake files
@@ -34,6 +39,8 @@ module RakeOE
         dir = File.dirname(file)
         name = File.basename(dir)
         kvr = KeyValueReader.new(file)
+        kvr.merge(@defaults)
+
         prj_type = kvr.get('PRJ_TYPE')
 
         raise "Attribute PRJ_TYPE not set in #{dir}/prj.rake" if prj_type.empty?

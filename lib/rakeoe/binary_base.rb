@@ -28,7 +28,6 @@ module RakeOE
 
       @name = params[:name]
       @settings = params[:settings]
-      fixup_settings
       @src_dir = @settings['PRJ_HOME']
       @bin_dir = params[:bin_dir]
       @tc = params[:toolchain]
@@ -94,22 +93,6 @@ module RakeOE
       handle_prj_type
       handle_qt if '1' == @settings['USE_QT']
       # todo check all directories for existence ?
-    end
-
-
-    # Fixes any missing settings from project file
-    def fixup_settings
-      @settings['ADD_SOURCE_DIRS'] ||= ''
-      @settings['IGNORED_SOURCES'] ||= ''
-      @settings['EXPORTED_INC_DIRS'] ||= ''
-      @settings['ADD_INC_DIRS'] ||= ''
-      @settings['TEST_SOURCE_DIRS'] ||= ''
-      @settings['ADD_CFLAGS'] ||= ''
-      @settings['ADD_CXXFLAGS'] ||= ''
-      @settings['ADD_LIBS'] ||= ''
-      @settings['ADD_LDFLAGS'] ||= ''
-      @settings['USE_QT'] ||= ''
-      @settings['IGNORED_PLATFORMS'] ||= ''
     end
 
 

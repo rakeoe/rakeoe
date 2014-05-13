@@ -39,5 +39,63 @@ module RakeOE
 
   # Default software version string
   DEFAULT_SW_VERSION = 'unversioned'
+
+
+  class Default
+
+    def self.suffixes
+      RakeOE::DEFAULT_SUFFIXES
+    end
+
+    def self.dirs
+      RakeOE::DEFAULT_DIRS
+    end
+
+    def self.release
+      RakeOE::DEFAULT_RELEASE
+    end
+
+    def self.test_fw
+      RakeOE::DEFAULT_TEST_FW
+    end
+
+    def self.optimization_dbg
+      RakeOE::DEFAULT_OPTIMIZATION_DBG
+    end
+
+    def self.optimization_release
+      RakeOE::DEFAULT_OPTIMIZATION_RELEASE
+    end
+
+    def self.lang_std_c
+      RakeOE::DEFAULT_LANGUAGE_STD_C
+    end
+
+    def self.lang_std_cpp
+      RakeOE::DEFAULT_LANGUAGE_STD_CPP
+    end
+
+    def self.sw_version
+      RakeOE::DEFAULT_SW_VERSION
+    end
+
+    def self.prj_settings
+      {
+        'ADD_SOURCE_DIRS'   => '',
+        'IGNORED_SOURCES'   => '',
+        'EXPORTED_INC_DIRS' => 'include/',
+        'ADD_INC_DIRS'      => '',
+        'TEST_SOURCE_DIRS'  => 'test/ tests/',
+        'ADD_CFLAGS'        => '',
+        'ADD_CXXFLAGS'      => '',
+        'ADD_LIBS'          => '',
+        'ADD_LDFLAGS'       => '',
+        'USE_QT'            => '',
+        'IGNORED_PLATFORMS' => ''
+      }
+    end
+
+
+  end
 end
 

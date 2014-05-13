@@ -139,6 +139,15 @@ class KeyValueReader
     @env[key] = value
   end
 
+  # Merges a hash of key value pairs without actually overwriting existing entries.
+  # This is similar as the ||= operator on a key => value basis.
+  #
+  # @param a_hash   Hash of Key/Value pairs
+  #
+  # @return the
+  def merge(a_hash)
+    @env.merge!(a_hash) { |key, v1, v2| v1 }
+  end
 
   # Adds a value for key
   #
