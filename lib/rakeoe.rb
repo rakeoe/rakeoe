@@ -69,6 +69,9 @@ module RakeOE
         namespace 'test' do
           desc "Run all #{type} tests"
           task :all
+
+          desc "Run all #{type} tests and create junit xml output"
+          task :junit
         end
       end
     end
