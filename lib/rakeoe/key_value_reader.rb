@@ -74,19 +74,21 @@ class KeyValueReader
       key.gsub!(/["']*/, '')
       key.strip!
 
-      unless value.empty?
-        prev_key = key
-        # We could have split multiple '=' in one line.
-        # Put back any "=" in the value part
-        # and concatenate split strings
-        val = value.join('=')
-        val.gsub!(/["'\n]*/, '')
-        env[key] = val.strip
-      else
+      if value.empty?
         if prev_key && !line.include?('=')
           # multiline value: treat key as value and add to previous found key
           env[prev_key] = "#{env[prev_key]} #{key}"
         end
+      else
+        prev_key = key
+        # We could have split multiple '=' in one line.
+        # Put back any "=" in the value part
+        # and concatenate split strings
+        val = value.join('=').strip
+        val.gsub!(/^["']*/, '')
+        val.gsub!(/["']$/, '')
+        val.gsub!(/[\n]*/, '')
+        env[key] = val.strip
       end
 
     end
