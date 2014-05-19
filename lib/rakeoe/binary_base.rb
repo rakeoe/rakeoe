@@ -67,28 +67,34 @@ module RakeOE
         @srcs.uniq!
       end
 
-      @objs = @srcs.map {|file| source_to_obj(file, @src_dir, @build_dir)}
-      @test_objs = @test_srcs.map {|file| source_to_obj(file, @src_dir, @build_dir)}
-      @deps = @objs.map {|obj| obj.ext('.d')}
-      @test_deps = @test_objs.map {|obj| obj.ext('.d')}
-
-      # load dependency files if already generated
-      load_deps(@deps)
-      load_deps(@test_deps)
-
-      # all objs are dependent on project file and platform file
-      (@objs+@test_objs).each do |obj|
-        file obj => [@settings['PRJ_FILE'], @tc.config.platform]
-      end
-
       if (@settings['TEST_FRAMEWORK'].nil? or @settings['TEST_FRAMEWORK'].empty?)
         @test_fw = @tc.default_test_framework
       else
         @test_fw = @tc.test_framework(@settings['TEST_FRAMEWORK'])
       end
 
+      @objs = @srcs.map {|file| source_to_obj(file, @src_dir, @build_dir)}
+      @deps = @objs.map {|obj| obj.ext('.d')}
+      if has_tests?
+        @test_objs = @test_srcs.map {|file| source_to_obj(file, @src_dir, @build_dir)}
+        @test_deps = @test_objs.map {|obj| obj.ext('.d')}
+        load_deps(@test_deps)
+        @test_inc_dirs = @settings['TEST_SOURCE_DIRS'].empty? ? '' : @test_fw.include.join(' ')
+      else
+        @test_objs = []
+        @test_deps = []
+        @test_inc_dirs = ''
+      end
+
+      # load dependency files if already generated
+      load_deps(@deps)
+
+      # all objs are dependent on project file and platform file
+      (@objs+@test_objs).each do |obj|
+        file obj => [@settings['PRJ_FILE'], @tc.config.platform]
+      end
+
       @test_binary =  "#{bin_dir}/#{name}-test"
-      @test_inc_dirs = @settings['TEST_SOURCE_DIRS'].empty? ? '' : @test_fw.include.join(' ')
 
       handle_prj_type
       handle_qt if '1' == @settings['USE_QT']
