@@ -1,3 +1,3 @@
 module RakeOE
-  VERSION = '0.0.9pre'
+  VERSION = '0.0.9'
 end
