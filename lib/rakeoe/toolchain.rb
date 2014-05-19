@@ -222,7 +222,8 @@ class Toolchain
   end
 
   # Executes the command
-  def sh(cmd, silent: false)
+  def sh(cmd, silent = false)
+
     if RbConfig::CONFIG["host_os"] != "mingw32"
       full_cmd = "export PATH=#{@settings['PATH']} && #{cmd}"
     else
