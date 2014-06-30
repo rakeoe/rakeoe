@@ -27,6 +27,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec"
   spec.add_development_dependency "factory_girl", "~> 4.0"
-  
+
+  spec.required_ruby_version = '>= 1.9.2'
+
   spec.add_dependency "rake"
 end
