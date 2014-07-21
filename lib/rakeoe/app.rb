@@ -54,13 +54,13 @@ module RakeOE
 
       binary_targets = paths_of_local_libs() + @app_main_dep + @app_main_obj
 
-      # This is only necessary if we have more than a single app main file
-      if @app_lib_objs.any?
-        create_app_lib_rules(binary_targets)
-      end
-
       prj_libs = search_libs(settings)
       linked_libs = prj_libs[:all]
+
+      # This is only necessary if we have more than a single app main file
+      if @app_lib_objs.any?
+        create_app_lib_rules(binary_targets, linked_libs)
+      end
 
       file binary => binary_targets do
         tc.app(:libs => linked_libs,
@@ -107,12 +107,13 @@ module RakeOE
       CLOBBER.include('*.d', build_dir)
     end
 
-    def create_app_lib_rules(binary_targets)
+    def create_app_lib_rules(binary_targets, libs)
       app_lib_targets = @app_lib_deps + @app_lib_objs + [@settings['PRJ_FILE']]
       file @app_lib => app_lib_targets do
         tc.lib(:objects => @app_lib_objs,
-        :lib => @app_lib,
-        :settings => @settings)
+               :lib => @app_lib,
+               :libs => libs,
+               :settings => @settings)
       end
 
       # add this to the dependent targets of app binary

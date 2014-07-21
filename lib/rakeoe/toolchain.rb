@@ -308,6 +308,21 @@ class Toolchain
     end.join(' ').strip
   end
 
+  # Return array of library prerequisites for given file
+  def libs_for_binary(a_binary, visited=[])
+    return [] if visited.include?(a_binary)
+    visited << a_binary
+    pre = Rake::Task[a_binary].prerequisites
+    rv = []
+    pre.each do |p|
+      next if (File.extname(p) != '.a') && (File.extname(p) != '.so')
+      next if p =~ /\-app\.a/
+      rv << File.basename(p).gsub(/(\.a|\.so|^lib)/, '')
+      rv += libs_for_binary(p, visited)   # Recursive call
+    end
+    rv.uniq
+  end
+
   # Touches a file
   def touch(file)
     sh "#{@settings['TOUCH']} #{file}"
@@ -419,7 +434,8 @@ class Toolchain
   def lib(params = {})
     ldflags   = params[:settings]['ADD_LDFLAGS'] + ' ' + @settings['LDFLAGS']
     objs      = params[:objects].join(' ')
-    libs      = linker_line_for(params[:libs])
+    dep_libs = (params[:libs] + libs_for_binary(params[:lib])).uniq
+    libs      = linker_line_for(dep_libs)
     extension = File.extname(params[:lib])
 
     case extension
@@ -448,7 +464,8 @@ class Toolchain
     incs    = compiler_incs_for(params[:includes])
     ldflags = params[:settings]['ADD_LDFLAGS'] + ' ' + @settings['LDFLAGS']
     objs    = params[:objects].join(' ')
-    libs    = linker_line_for(params[:libs])
+    dep_libs = (params[:libs] + libs_for_binary(params[:app])).uniq
+    libs    = linker_line_for(dep_libs)
 
     sh "#{@settings['SIZE']} #{objs} >#{params[:app]}.size" if @settings['SIZE']
     sh "#{@settings['CXX']} #{incs} #{objs} #{ldflags} #{libs} -o #{params[:app]} -Wl,-Map,#{params[:app]}.map"
@@ -470,7 +487,8 @@ class Toolchain
     ldflags = params[:settings]['ADD_LDFLAGS'] + ' ' +  @settings['LDFLAGS']
     objs    = params[:objects].join(' ')
     test_fw = linker_line_for([params[:framework]])
-    libs    = linker_line_for(params[:libs])
+    dep_libs = (params[:libs] + libs_for_binary(params[:test])).uniq
+    libs    = linker_line_for(dep_libs)
 
     sh "#{@settings['CXX']} #{incs} #{objs} #{test_fw} #{ldflags} #{libs} -o #{params[:test]}"
   end

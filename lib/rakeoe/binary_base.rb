@@ -473,12 +473,14 @@ module RakeOE
     #
     def search_libs(settings)
       # get all libs specified in ADD_LIBS
-      libs = settings['ADD_LIBS'].split
+      libs = settings['ADD_LIBS'].split || []
+      libs ||= []
 
       # match libs found by toolchain
       local_libs = libs.each_with_object(Array.new) do |lib, arr|
         arr << lib if (PrjFileCache.contain?('LIB', lib) || PrjFileCache.contain?('SOLIB', lib))
       end
+      local_libs ||= []
 
       # return value is a hash
       {
