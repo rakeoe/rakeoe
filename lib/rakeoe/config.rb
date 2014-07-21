@@ -95,7 +95,9 @@ module RakeOE
 
     # Dumps configuration to stdout
     def dump
-      puts 'RakeOE::Config:'
+      puts '******************'
+      puts '* RakeOE::Config *'
+      puts '******************'
       puts "Directories                 : #{@directories}"
       puts "Suffixes                    : #{@suffixes}"
       puts "Platform                    : #{@platform}"

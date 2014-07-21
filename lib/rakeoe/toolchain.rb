@@ -494,7 +494,9 @@ class Toolchain
   end
 
   def dump
-    print "Platform configuration: "
+    puts '**************************'
+    puts '* Platform configuration *'
+    puts '**************************'
     @kvr.dump
   end
 
