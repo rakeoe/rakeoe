@@ -29,7 +29,7 @@ module RakeOE
     RakeOE::PrjFileCache.sweep_recursive(config.directories[:apps] + config.directories[:libs])
 
     toolchain = RakeOE::Toolchain.new(config)
-    
+    RakeOE::PrjFileCache.join_regex_keys_for!(toolchain.target)
     #
     # Top level tasks
     #

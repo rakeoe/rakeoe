@@ -111,6 +111,38 @@ module RakeOE
     # SEMANTIC METHODS
     #
 
+
+    # Joins all entries with keys that are appended with a regular expression that match
+    # the given match_string. Make them available via the base key name without the
+    # regular expression.
+    #
+    # @param a_string   String to be matched against key in all kvr with appended regular expression
+    #
+    def self.join_regex_keys_for!(a_string)
+      @prj_list.each_pair do |prj_type, prj_names|
+        prj_names.each_pair do |prj_name, defs|
+          defs.each_pair do |property, value|
+            # split properties containing /../
+            base, key_regex = property.split(/\//)
+            if (key_regex)
+              if a_string.match(Regexp.new(key_regex))
+                if base.end_with?('_')
+                  base_key = base.chop
+                else
+                  base_key = base
+                end
+
+                # if base_key does not yet exist, create an empty string
+                @prj_list[prj_type][prj_name][base_key] ||= ''
+                @prj_list[prj_type][prj_name][base_key] += " #{@prj_list[prj_type][prj_name][property]}"
+              end
+            end
+          end
+        end
+      end
+    end
+
+
     # Returns exported include directories of a library project.
     # If given name does not exist in local library projects, an empty array
     # is returned.
