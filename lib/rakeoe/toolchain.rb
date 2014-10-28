@@ -186,8 +186,7 @@ class Toolchain
 
   # Set common build variables
   #
-  # @param [String] release_mode   Release mode used for the build, either 'release' or 'dbg'
-  def set_build_vars()
+  def set_build_vars
     warning_flags = ' -W -Wall'
     if 'release' == @config.release
       optimization_flags = " #{@config.optimization_release} -DRELEASE"
@@ -289,6 +288,10 @@ class Toolchain
   end
 
   # Generates linker line from given library list.
+  # The linker line normally will be like -l<lib1> -l<lib2>, ...
+  #
+  # If a library has specific platform specific setting in the platform file
+  # with a specific -l<lib> alternative, this will be used instead.
   #
   # @param [Array]  libs  Libraries to be used for linker line
   #
@@ -296,9 +299,10 @@ class Toolchain
   #
   def linker_line_for(libs)
     return '' if (libs.nil? || libs.empty?)
+
     libs.map do |lib|
       settings = platform_settings_for(lib)
-      if settings[:LDFLAGS].nil?
+      if settings[:LDFLAGS].nil? || settings[:LDFLAGS].empty?
         # automatic linker line if no platform specific LDFLAGS exist
         "-l#{lib}"
       else
@@ -308,6 +312,24 @@ class Toolchain
     end.join(' ').strip
   end
 
+
+  # Reduces the given list of libraries to bare minimum, i.e.
+  # the minimum needed for actual platform
+  #
+  # @libs   list of libraries
+  #
+  # @return reduced list of libraries
+  #
+  def reduce_libs_to_bare_minimum(libs)
+    rv = libs.clone
+    lib_entries = RakeOE::PrjFileCache.get_lib_entries(libs)
+    lib_entries.each_pair do |lib, entry|
+      rv.delete(lib) unless RakeOE::PrjFileCache.project_entry_buildable?(entry, @target)
+    end
+    rv
+  end
+
+
   # Return array of library prerequisites for given file
   def libs_for_binary(a_binary, visited=[])
     return [] if visited.include?(a_binary)
@@ -315,18 +337,40 @@ class Toolchain
     pre = Rake::Task[a_binary].prerequisites
     rv = []
     pre.each do |p|
+
       next if (File.extname(p) != '.a') && (File.extname(p) != '.so')
       next if p =~ /\-app\.a/
+
       rv << File.basename(p).gsub(/(\.a|\.so|^lib)/, '')
       rv += libs_for_binary(p, visited)   # Recursive call
     end
-    rv.uniq
+
+    reduce_libs_to_bare_minimum(rv.uniq)
   end
 
   # Touches a file
   def touch(file)
     sh "#{@settings['TOUCH']} #{file}"
   end
+
+
+  # Tests if all given files in given list exist
+  # @return true    all file exist
+  # @return false   not all file exist
+  def test_all_files_exist?(files)
+    files.each do |file|
+      raise "No such file: #{file}" unless File.exist?(file)
+    end
+  end
+
+  def diagnose_buildability(projects)
+    projects.each do |project|
+
+      RakeOE::PrjFileCache.project_entry_buildable?(entry, platform)
+    end
+
+  end
+
 
   # Returns platform specific settings of a resource (APP/LIB/SOLIB or external resource like e.g. an external library)
   # as a hash with the keys CFLAGS, CXXFLAGS and LDFLAGS. The values are empty if no such resource settings exist inside

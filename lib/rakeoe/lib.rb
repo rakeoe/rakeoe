@@ -24,6 +24,9 @@ module RakeOE
 
 
     # Create all rules and tasks for the lib
+    # XXX DS: we have to make a consistent step by step approach for each binary type
+    # XXX DS: something like: 1.) search library dependencies, 2.)build paths, 3.) create main rule,
+    # XXX DS: 4.) make test rules, 5, make additional rules (clean/all, ...) etc.
     def create
       unless project_can_build?
         disable_build
@@ -32,10 +35,12 @@ module RakeOE
 
       desc "Create #{name}"
 
+      prj_libs = search_libs(settings)
+#puts "prj_libs for #{name}: #{prj_libs}"
       task name => [binary]
-
-      file binary => paths_of_local_libs + deps + objs do
-        prj_libs = search_libs(settings)
+      dependency_paths = paths_of_local_libs + deps + objs
+      file binary => dependency_paths do
+        tc.test_all_files_exist?(dependency_paths)
         tc.lib(:objects => objs,
                :lib => binary,
                :libs => prj_libs[:all],
@@ -43,7 +48,7 @@ module RakeOE
       end
 
       if test_objs.any? && (tc.config.test_fw.size > 0)
-        create_test_rules()
+        create_test_rules(:libs => prj_libs)
       end
 
       task name+'_clean' do
@@ -66,7 +71,7 @@ module RakeOE
 
 
     # Create all rules and tasks
-    def create_test_rules
+    def create_test_rules(params)
       namespace 'test' do
         # Build the library and execute tests
         desc "Test #{name}"
@@ -81,10 +86,10 @@ module RakeOE
 
         # 'hidden' task just for building the test
         task "#{name}_build" => test_binary
+        prj_libs = params[:libs]
 
         # main rule for the test binary
-        file test_binary => [@test_fw.binary_path] + [binary] + test_deps + test_objs do
-          prj_libs = search_libs(settings)
+        file test_binary => [@test_fw.binary_path] + paths_of_local_libs + [binary] + test_deps + test_objs do
           tc.test(:objects => test_objs,
                   :test => test_binary,
                   :libs => prj_libs[:all] + [name],

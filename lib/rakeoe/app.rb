@@ -38,6 +38,7 @@ module RakeOE
       @app_main_dep = @app_main_obj.map {|obj| obj.ext('.d')}
       @app_lib_objs = objs - @app_main_obj
       @app_lib_deps = @app_lib_objs.map {|obj| obj.ext('.d')}
+      @prj_libs = search_libs(settings)
     end
 
 
@@ -64,10 +65,10 @@ module RakeOE
 
       file binary => binary_targets do
         tc.app(:libs => linked_libs,
-        :app => binary,
-        :objects => @app_main_obj,
-        :settings => @settings,
-        :includes => src_dirs)
+              :app => binary,
+              :objects => @app_main_obj,
+              :settings => @settings,
+              :includes => src_dirs)
       end
 
       if test_objs.any?
@@ -139,13 +140,14 @@ module RakeOE
         # 'hidden' task just for building the test
         task "#{name}_build" => test_binary
 
-        file test_binary => [@test_fw.binary_path] + binary_targets + test_deps + test_objs do
+        test_binary_dependencies =  [@test_fw.binary_path] + binary_targets + test_deps + test_objs
+        file test_binary => test_binary_dependencies do
           tc.test(:objects => test_objs + [@app_lib],
-          :test => test_binary,
-          :libs => linked_libs,
-          :framework => @test_fw.name,
-          :settings => @settings,
-          :includes => test_dirs)
+                  :test => test_binary,
+                  :libs => linked_libs,
+                  :framework => @test_fw.name,
+                  :settings => @settings,
+                  :includes => test_dirs)
         end
         CLEAN.include(test_binary, build_dir)
         task :all => "#{name}"

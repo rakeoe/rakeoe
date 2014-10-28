@@ -25,7 +25,8 @@ module RakeOE
     #
     def initialize(params)
       check_params(params)
-
+      @@all_libs ||= (PrjFileCache.project_names('LIB') + PrjFileCache.project_names('SOLIB')).uniq
+      @@all_libs_and_deps ||= PrjFileCache.search_recursive(:names => @@all_libs, :attribute => 'ADD_LIBS')
       @name = params[:name]
       @settings = params[:settings]
       @src_dir = @settings['PRJ_HOME']
@@ -274,14 +275,14 @@ module RakeOE
       end
     end
 
+
     # Checks if projects build prerequisites are met.
     #
     # If at least one of the following criteria are met, the method returns false:
     #   * project variable PRJ_TYPE == "DISABLED"
     #   * project variable IGNORED_PLATFORMS contains build platform
-    # @return   true    if project can be build on current platform
-    #           false   if project settings prohibit building
-
+    # @return   true    if project can be built on current platform
+    # @return   false   if project settings prohibit building
     def project_can_build?
       (settings['PRJ_TYPE'] != 'DISABLED') and (! tc.current_platform_any?(settings['IGNORED_PLATFORMS'].split))
     end
@@ -440,54 +441,51 @@ module RakeOE
       end
     end
 
-
-    # Returns unique list of dependent libraries for given parameter.
-    #
-    # @param [Array] libs     Libraries for using dependent libs
-    #
-    # @return [Set]           All dependent libs
-    #
-    def all_lib_deps(libs)
-      @lib_type ||= PrjFileCache.entries_reversed(['LIB', 'SOLIB'])
-      @dependent_libs ||= Set.new
-
-      libs.each do |name|
-        if (@lib_cache.has_key?(name))
-          unless @dependent_libs.contain?(name)
-            @dependent_libs += all_lib_deps(PrjFileCache.get(@lib_type[name], name, 'ADD_LIBS'))
-          end
-        end
-      end
-      @dependent_libs
-    end
-
-
     # Search dependent libraries as specified in ADD_LIBS setting
     # of prj.rake file
     #
     # @param [String] settings    The project settings definition
     #
-    # @return [Hash]                  Containing the following components mapped to an array:
-    # @option return [Array] :local   local libs found by toolchain
-    # @option return [Array] :all     local + external libs
+    # @return [Hash]                        Containing the following components mapped to an array:
+    # @option return [Array] :local         all local libs found by toolchain
+    # @option return [Array] :local_alibs   local static libs found by toolchain
+    # @option return [Array] :local_solibs  local shared libs found by toolchain
+    # @option return [Array] :all           local + external libs
     #
     def search_libs(settings)
       # get all libs specified in ADD_LIBS
-      libs = settings['ADD_LIBS'].split || []
-      libs ||= []
+      search_libs =  settings['ADD_LIBS'].split
+      our_lib_deps = []
+      search_libs.each do |lib|
+        our_lib_deps << lib
+        deps_of_lib = @@all_libs_and_deps[lib]
+        if deps_of_lib
+          our_lib_deps += deps_of_lib
+        end
+      end
+      our_lib_deps.uniq!
 
       # match libs found by toolchain
-      local_libs = libs.each_with_object(Array.new) do |lib, arr|
-        arr << lib if (PrjFileCache.contain?('LIB', lib) || PrjFileCache.contain?('SOLIB', lib))
+      solibs_local = []
+      alibs_local = []
+      our_lib_deps.each do |lib|
+        if PrjFileCache.contain?('LIB', lib)
+          alibs_local << lib
+        elsif PrjFileCache.contain?('SOLIB', lib)
+          solibs_local << lib
+        end
       end
-      local_libs ||= []
+      local_libs = (alibs_local + solibs_local) || []
 
       # return value is a hash
       {
-        :local => local_libs,
-        :all => libs
+        :local        => local_libs,
+        :local_alibs  => alibs_local,
+        :local_solibs => solibs_local,
+        :all          => our_lib_deps
       }
     end
+
 
     # Iterate over each local library and execute given block
     #
@@ -500,6 +498,24 @@ module RakeOE
       end
     end
 
+
+    #
+    # Returns absolute paths to given libraries, if they are local libraries
+    # of the current project.
+    #
+    def paths_of_libs(some_libs)
+      local_libs = Array.new
+
+      some_libs.each do |lib|
+        if PrjFileCache.contain?('LIB', lib)
+          local_libs << "#{tc.settings['LIB_OUT']}/lib#{lib}.a"
+        elsif PrjFileCache.contain?('SOLIB', lib)
+          local_libs << "#{tc.settings['LIB_OUT']}/lib#{lib}.so"
+        end
+      end
+
+      local_libs
+    end
     #
     # Returns absolute paths to dependend local libraries, i.e. libraries
     # of the current project.

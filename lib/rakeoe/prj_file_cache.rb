@@ -6,14 +6,25 @@ require 'rake'
 module RakeOE
 
   # Finds all project files and reads them into memory
-  # Maps project path => project file
+  # Maps found entries to the following hash format:
+  #
+  #  {"PRJ_TYPE1" => [{"NAME1"=>{"SETTING1" => "VALUE1", "SETTING2" => "VALUE2", ... },
+  #                   {"NAME2"=>{"SETTING1" => "VALUE1", "SETTING2" => "VALUE2", ... },
+  #                    ... ,
+  #                  ]
+  #  {"PRJ_TYPE2" => [{"NAME100"=>{"SETTING1" => "VALUE1", "SETTING2" => "VALUE2", ... },
+  #                   {"NAME101"=>{"SETTING1" => "VALUE1", "SETTING2" => "VALUE2", ... },
+  #                   ... ,
+  #                  ]
+  #  }
   # XXX DS: IDEA: generate all runtime dependencies at the beginning for each prj,
   # XXX DS: e.g. lib includes, source files, dependency files etc. and cache those as own variable in @prj_list
   class PrjFileCache
 
-    attr_accessor :prj_list
+    class << self; attr_accessor :prj_list end
 
-    # Introduce hash of projects. Contains list of project with key 'PRJ_TYPE'
+    # Introduce class instance variable: hash of projects.
+    # Contains list of project with key 'PRJ_TYPE'
     @prj_list = {}
 
     #
@@ -59,6 +70,21 @@ module RakeOE
     end
 
 
+    # Returns specific project library settings with given library names
+    #
+    # @param libs   Name of libraries
+    #
+    def self.get_lib_entries(libs)
+      rv = {}
+      self.entries_reversed(['ALIB', 'SOLIB']).each_pair do |entries, prj_name|
+        if libs.include?(prj_name)
+          rv[prj_name] = entries
+        end
+      end
+      rv
+    end
+
+
     # Returns specific value of a setting of the specified
     # project
     def self.get(prj_type, prj_name, setting)
@@ -66,6 +92,24 @@ module RakeOE
       @prj_list[prj_type][prj_name][setting] || nil
     end
 
+
+    # Returns specific value of a setting of the specified
+    # project
+    def self.get_with_name(prj_name, setting)
+      projects = @prj_list.values.flatten
+      projects.each do |project|
+        values = project[prj_name]
+        if values
+          value = values[setting].split
+          if value
+            return value
+          else
+            return []
+          end
+        end
+      end
+      []
+    end
 
     # Do we know anything about prj_name ?
     def self.contain?(prj_type, prj_name)
@@ -87,10 +131,53 @@ module RakeOE
       @prj_list[prj_type][prj_name]['PRJ_HOME']
     end
 
-
+    # iterate over each project with given project type
     def self.for_each(prj_type, &block)
       return unless @prj_list.has_key?(prj_type)
       @prj_list[prj_type].each_pair &block
+    end
+
+
+    #
+    # Recursive function that uses each value of the array given via
+    # parameter 'values' and uses parameter 'setting' for accessing the
+    # values for next recursion step until all values have been traversed
+    # in all projects
+    def self.deps_recursive(values, setting, visited=Set.new)
+      return visited if values.nil?
+      values.each do |val|
+        next if (visited.include?(val))
+        visited << val
+        next_values = PrjFileCache.get_with_name(val, setting)
+        deps_recursive(next_values, setting, visited)
+      end
+      visited
+    end
+
+
+    # Searches recursively for all projects with name and associate
+    # Dependency with given attribute
+    #
+    # Returns a hash of the following form:
+    # { 'name1' => ['name2', 'name3', ...],
+    #   'name2' => ['name1', 'name3', ...],
+    #   'name3' => ['name1', 'name5', ...],
+    # }
+    #
+    def self.search_recursive(params={})
+      attribute = params[:attribute]
+      names = params[:names]
+      rv = {}
+      @prj_list.values.flatten.each do |projects|
+        projects.each_pair do |prj_name, prj_attributes|
+          if (names.include?(prj_name))
+            attr_values = prj_attributes[attribute].split
+            dependencies = deps_recursive(attr_values, attribute)
+            rv[prj_name] = dependencies.to_a
+          end
+        end
+      end
+      rv
     end
 
 
@@ -103,14 +190,51 @@ module RakeOE
     #
     def self.entries_reversed(prj_types)
       prj_types.each_with_object(Hash.new) do |prj_type, h|
-        h.merge!(@prj_list[prj_type].reverse) if @prj_list.has_key?(prj_type)
+        h.merge!(@prj_list[prj_type].invert) if @prj_list.has_key?(prj_type)
       end
     end
 
+
     #
-    # SEMANTIC METHODS
+    # SEMANTIC METHODS, use specific attributes
     #
 
+
+    # Checks if the project entries build prerequisites are met.
+    #
+    # If at least one of the following criteria are met, the method returns false:
+    #   * project variable PRJ_TYPE == "DISABLED"
+    #   * project variable IGNORED_PLATFORMS contains build platform
+    #
+    # @param    entry       The project name
+    # @param    platform    Current platform
+    #
+    # @return   true    if project can be built on current platform
+    # @return   false   if project settings prohibit building
+    #
+    def self.project_entry_buildable?(entry, platform)
+      (entry['IGNORED_PLATFORMS'].include?(platform)) &&
+          (entry['PRJ_TYPE'] != 'DISABLED')
+    end
+
+=begin
+    # Checks if projects build prerequisites are met.
+    #
+    # If at least one of the following criteria are met, the method returns false:
+    #   * project variable PRJ_TYPE == "DISABLED"
+    #   * project variable IGNORED_PLATFORMS contains build platform
+    #
+    # @param    prj_type  The project type
+    # @param    prj_name  The project name
+    # @param    platform  Current platform
+    #
+    # @return   true      if project can be built on current platform
+    # @return   false     if project settings prohibit building
+    #
+    def self.project_can_build?(prj_type, prj_name, platform)
+      self.project_entry_buildable?(@prj_list[prj_type][prj_name], platform)
+    end
+=end
 
     # Joins all entries with keys that are appended with a regular expression that match
     # the given match_string. Make them available via the base key name without the
