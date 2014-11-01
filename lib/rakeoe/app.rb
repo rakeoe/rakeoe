@@ -66,7 +66,7 @@ module RakeOE
       file binary => binary_targets do
         tc.app(:libs => linked_libs,
               :app => binary,
-              :objects => @app_main_obj,
+              :objects => objs,
               :settings => @settings,
               :includes => src_dirs)
       end
