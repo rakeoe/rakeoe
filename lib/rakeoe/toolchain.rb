@@ -40,7 +40,6 @@ class Toolchain
       @target=`PATH = #{@settings['PATH']} & #{@settings['CC']} -dumpmachine`.chop
     end
 
-    @settings['TOUCH'] = 'touch'
     # XXX DS: we should only instantiate @qt if we have any qt settings
     @qt = QtSettings.new(self)
     set_build_vars()
@@ -486,7 +485,8 @@ class Toolchain
       when ('.a')
         # need to use 'touch' for correct timestamp, ar doesn't update the timestamp
         # if archive hasn't changed
-        sh "#{@settings['AR']} curv #{params[:lib]} #{objs} && #{@settings['TOUCH']} #{params[:lib]}"
+        success = sh("#{@settings['AR']} curv #{params[:lib]} #{objs}")
+        touch(params[:lib]) if success
       when '.so'
         sh "#{@settings['CXX']} -shared  #{ldflags} #{libs} #{objs} -o #{params[:lib]}"
       else
