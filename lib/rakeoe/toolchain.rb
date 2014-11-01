@@ -241,7 +241,7 @@ class Toolchain
   # @param [String]  files   List of files to be deleted
   def rm(files)
     if files
-      Rake::sh "rm -f #{files}" unless files.empty?
+      RakeFileUtils.rm_f(files) unless files.empty?
     end
   end
 
@@ -350,7 +350,7 @@ class Toolchain
 
   # Touches a file
   def touch(file)
-    sh "#{@settings['TOUCH']} #{file}"
+    RakeFileUtils.touch(file)
   end
 
 
