@@ -1,7 +1,5 @@
 [![Gem Version](https://badge.fury.io/rb/rakeoe.png)](http://badge.fury.io/rb/rakeoe)
 
-[![rakeoe API Documentation](https://www.omniref.com/ruby/gems/rakeoe.png)](https://www.omniref.com/ruby/gems/rakeoe)
-
 Rake Optimized for Embedded: RakeOE is a build system for application/library development. RakeOE utilizes the power of Rake and the easyness of Ruby to make build management for embedded C/C++ development as easy and straight-forward as possible. It's possible to use it on the command line or to integrate it into an IDE like Eclipse. It runs on Windows, Linux and Mac OS X. 
 # RakeOE : Rake Optimized for Embedded
 
@@ -35,6 +33,7 @@ The work on this build system has been kindly sponsored by [ifm syntron](http://
 * Clone the [Demo projects](https://github.com/rakeoe/rakeoe/wiki/Demo-Projects)
 * Add [Bash autocompletion](https://github.com/rakeoe/rakeoe/wiki/Shell-autocompletion-for-rake)
 * Study the [Reference](https://github.com/rakeoe/rakeoe/wiki/Reference) section
+* [![rakeoe API Documentation](https://www.omniref.com/ruby/gems/rakeoe.png)](https://www.omniref.com/ruby/gems/rakeoe)
 
 ## License
 
