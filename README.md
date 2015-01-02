@@ -1,5 +1,7 @@
 [![Gem Version](https://badge.fury.io/rb/rakeoe.png)](http://badge.fury.io/rb/rakeoe)
+[![rakeoe API Documentation](https://www.omniref.com/ruby/gems/rakeoe.png)](https://www.omniref.com/ruby/gems/rakeoe)
 
+Rake Optimized for Embedded: RakeOE is a build system for application/library development. RakeOE utilizes the power of Rake and the easyness of Ruby to make build management for embedded C/C++ development as easy and straight-forward as possible. It's possible to use it on the command line or to integrate it into an IDE like Eclipse. It runs on Windows, Linux and Mac OS X. 
 # RakeOE : Rake Optimized for Embedded
 
 **A build system for test driven Embedded C/C++ Development based on Ruby rake**
