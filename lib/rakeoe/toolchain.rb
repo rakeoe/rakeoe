@@ -513,7 +513,10 @@ class Toolchain
 
     sh "#{@settings['SIZE']} #{objs} >#{params[:app]}.size" if @settings['SIZE']
     sh "#{@settings['CXX']} #{incs} #{objs} #{ldflags} #{libs} -o #{params[:app]} -Wl,-Map,#{params[:app]}.map"
-    sh "#{@settings['OBJCOPY']} -O binary #{params[:app]} #{params[:app]}.bin"
+    if RbConfig::CONFIG["host_os"] != "mingw32"
+      sh "#{@settings['OBJCOPY']} -O binary #{params[:app]} #{params[:app]}.bin"
+    end
+      
   end
 
   # Creates test
