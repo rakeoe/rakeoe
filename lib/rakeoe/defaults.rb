@@ -40,6 +40,18 @@ module RakeOE
   # Default software version string
   DEFAULT_SW_VERSION = 'unversioned'
 
+  # Default for if binaries should be stripped
+  DEFAULT_STRIPPED = false
+
+  # Default for if hex files should be generated from app binaries
+  DEFAULT_GENERATE_HEX = false
+
+  # Default for if bin files should be generated from app binaries
+  DEFAULT_GENERATE_BIN = false
+
+  # Default for if map files should be generated from app binaries
+  DEFAULT_GENERATE_MAP = false
+
 
   class Default
 
@@ -77,6 +89,22 @@ module RakeOE
 
     def self.sw_version
       RakeOE::DEFAULT_SW_VERSION
+    end
+
+    def self.stripped
+      RakeOE::DEFAULT_STRIPPED
+    end
+
+    def self.generate_hex
+      RakeOE::DEFAULT_GENERATE_HEX
+    end
+
+    def self.generate_bin
+      RakeOE::DEFAULT_GENERATE_BIN
+    end
+
+    def self.generate_map
+      RakeOE::DEFAULT_GENERATE_MAP
     end
 
     def self.prj_settings

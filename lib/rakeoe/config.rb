@@ -9,7 +9,7 @@ module RakeOE
   class Config
 
     attr_accessor :suffixes, :directories, :platform , :release, :test_fw, :optimization_dbg, :optimization_release,
-                  :language_std_c, :language_std_cpp, :sw_version
+                  :language_std_c, :language_std_cpp, :sw_version, :stripped, :generate_hex, :generate_bin, :generate_map
 
     def initialize
 
@@ -73,6 +73,18 @@ module RakeOE
       # This parameter can be overridden via environment variable SW_VERSION_ENV.
       @sw_version = ENV['SW_VERSION_ENV'].nil? ? "#{RakeOE::Default.sw_version}-#{@release}" : ENV['SW_VERSION_ENV']
 
+      # Stripped flag
+      @stripped = RakeOE::Default.stripped
+
+      # Hex file flag. Generates a binary.hex file for each app binary if flag is set
+      @generate_hex = RakeOE::Default.generate_hex
+
+      # Bin file flag. Generates a binary.bin file for each app binary if flag is set
+      @generate_bin = RakeOE::Default.generate_bin
+
+      # Map file flag. Generates a map file file for each app/lib/solib binary if flag is set
+      @generate_map = RakeOE::Default.generate_map
+
       # Project settings as specified in prj.rake file
       @prj_settings = RakeOE::Default.prj_settings
     end
@@ -108,6 +120,10 @@ module RakeOE
       puts "Language Standard for C     : #{@language_std_c}"
       puts "Language Standard for C++   : #{@language_std_cpp}"
       puts "Software version string     : #{@sw_version}"
+      puts "Generate bin file           : #{@generate_bin}"
+      puts "Generate hex file           : #{@generate_hex}"
+      puts "Generate map file           : #{@generate_map}"
+      puts "Strip objects               : #{@stripped}"
     end
   end
 end
