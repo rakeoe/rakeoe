@@ -517,7 +517,8 @@ class Toolchain
     libs    = linker_line_for(dep_libs)
 
     sh "#{@settings['SIZE']} #{objs} >#{params[:app]}.size" if @settings['SIZE']
-    sh "#{@settings['CXX']} #{incs} #{objs} #{ldflags} #{libs} -o #{params[:app]} -Wl,-Map,#{params[:app]}.map" if @config.generate_map
+    sh "#{@settings['CXX']} #{incs} #{objs} #{ldflags} #{libs} -o #{params[:app]}"
+    sh "#{@settings['CXX']} #{incs} #{objs} #{ldflags} #{libs} -Wl,-Map,#{params[:app]}.map" if @config.generate_map
     sh "#{@settings['OBJCOPY']} -O binary #{params[:app]} #{params[:app]}.bin" if @config.generate_bin
     sh "#{@settings['OBJCOPY']} -O ihex #{params[:app]} #{params[:app]}.hex" if @config.generate_hex
     if (@config.stripped) && File.exist?(params[:app])
