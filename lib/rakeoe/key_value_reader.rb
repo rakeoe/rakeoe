@@ -31,7 +31,7 @@ class KeyValueReader
   def self.substitute_dollar_symbols!(env)
     resolved_dollar_vars = env.each_with_object(Hash.new) do |var, obj|
       # search for '$BLA..' identifier
-      pattern = /\$[[:alnum:]]+/
+      pattern = /\$[[:alnum:]_]+/
       match = var[1].match(pattern)
       if match
         # remove '$' from match, we don't need it as key
