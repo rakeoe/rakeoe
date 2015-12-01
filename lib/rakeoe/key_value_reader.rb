@@ -29,18 +29,11 @@ class KeyValueReader
   # Substitute all dollar values with either already parsed
   # values or with system environment variables
   def self.substitute_dollar_symbols!(env)
+    env.merge!(ENV)
     resolved_dollar_vars = env.each_with_object(Hash.new) do |var, obj|
-      # search for '$BLA..' identifier
-      pattern = /\$[[:alnum:]_]+/
-      match = var[1].match(pattern)
-      if match
-        # remove '$' from match, we don't need it as key
-        key = match[0].gsub('$', '')
-        value = env[key] ? env[key] : ENV[key]
-        raise "No $#{key} found in environment" if value.nil?
-
-        obj[var[0]] = var[1].gsub(pattern, value)
-      end
+      # expand all variables
+      pattern = /\$([a-zA-Z_]+[a-zA-Z0-9_]*)|\$\{(.+)\}/
+      obj[var[0]] = var[1].gsub(pattern) { env[$1||$2] }
     end
     # overwrite old values with resolved values
     env.merge!(resolved_dollar_vars)
