@@ -18,7 +18,7 @@ module RakeOE
   include Rake::DSL   # for #task, #desc, #namespace
 
   # Initialize RakeOE project. Reads & parses all prj.rake files
-  # of given config.
+  # of given config. Provides all rake tasks.
   #
   # @param config [RakeOE::Config]      Configuration as provided by project Rakefile
   #
@@ -26,7 +26,13 @@ module RakeOE
   def init(config)
 
     RakeOE::PrjFileCache.set_defaults(RakeOE::Default.prj_settings)
-    RakeOE::PrjFileCache.sweep_recursive(config.directories[:apps] + config.directories[:libs])
+
+    src_dirs = []
+    src_dirs += config.directories[:src] if config.directories[:src]
+    src_dirs += config.directories[:apps] if config.directories[:apps]
+    src_dirs += config.directories[:libs] if config.directories[:libs]
+
+    RakeOE::PrjFileCache.sweep_recursive(src_dirs.uniq)
 
     toolchain = RakeOE::Toolchain.new(config)
     RakeOE::PrjFileCache.join_regex_keys_for!(toolchain.target)
