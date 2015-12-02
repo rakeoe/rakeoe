@@ -416,7 +416,7 @@ module RakeOE
       end
 
       # make moc source file dependent on corresponding header file, XXX DS: only if project uses QT
-      rule /#{src_dir}\/.*moc_.*#{Regexp.escape(tc.moc_source)}$/ => [ proc {|tn| tn.gsub(/moc_/, '').ext(tc.moc_header_extension) } ] do |t|
+      rule /#{build_dir}\/mocs\/.*moc_.*#{Regexp.escape(tc.moc_source)}$/ => [ proc {|tn| tn.gsub(/moc_/, '').ext(tc.moc_header_extension) } ] do |t|
         tc.moc(:source => t.source,
                :moc => t.name,
                :settings => @settings)

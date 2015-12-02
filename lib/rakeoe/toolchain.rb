@@ -392,6 +392,7 @@ class Toolchain
     rv
   end
 
+
   # Creates compilation object
   #
   # @param  [Hash] params
@@ -449,7 +450,7 @@ class Toolchain
       else
         raise "unsupported source file extension (#{extension}) for creating dependency!"
     end
-    sh "#{compiler} -MM #{flags} #{incs} -c #{source} -MT #{dep.ext('.o')} -MF #{dep}", silent: true
+    sh "#{compiler} -MM #{flags} #{incs} -c #{source} -MT #{dep.ext('.o')} -MF #{dep}", silent: false
   end
 
 
@@ -460,10 +461,16 @@ class Toolchain
   # @option params [String] :moc      moc_XXX filename path
   # @option params [Hash]   :settings project specific settings
   #
+  # /usr/bin/moc-qt4 -i -fBridgeProxy.h src/lib/linux/dbus-proxy/BridgeProxy.h >src/lib/linux/dbus-proxy/moc_BridgeProxy.cpp
   def moc(params = {})
     moc_compiler = @settings['OE_QMAKE_MOC']
     raise 'No Qt Toolchain set' if moc_compiler.empty?
-    sh "#{moc_compiler} -i -f#{File.basename(params[:source])} #{params[:source]} >#{params[:moc]}"
+
+    moc_header = params[:source]
+    moc_file = params[:moc]
+    force_include = File.basename(moc_header)
+
+    sh "#{moc_compiler} -i -f#{force_include} #{moc_header} -o #{moc_file}"
   end
 
 
