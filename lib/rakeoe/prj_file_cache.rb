@@ -45,7 +45,7 @@ module RakeOE
       all_prj_files = FileList[globs]
       raise "No projects inside #{dirs}?!" if all_prj_files.empty?
 
-      all_prj_files.each do |file|
+      all_prj_files.uniq.each do |file|
         # extract last path from prj.rake as project name
         dir = File.dirname(file)
         name = File.basename(dir)
