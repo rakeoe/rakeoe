@@ -18,25 +18,46 @@ module RakeOE
 class KeyValueReader
   attr_accessor :env
 
-  def initialize(env_file)
-    raise "No such file #{env_file}" unless File.exist?(env_file)
+  # Constructor
+  # @param  [String, Hash]  par   If given as string, it should be a file name to the key-value file
+  #                               if given as Hash, it already contains a key-value mapping that should be $-substituted
+  def initialize(par)
+    if par.is_a? String
+      raise "No such file #{par}" unless File.exist?(par)
+      @file_name = par
+      @env = self.class.read_file(@file_name)
+    elsif par.is_a? Hash
+      @env = par
+    end
 
-    @file_name = env_file
-    @env = self.class.read_file(@file_name)
     self.class.substitute_dollar_symbols!(@env)
   end
 
   # Substitute all dollar values with either already parsed
   # values or with system environment variables
+  # @param [Hash]   env  Hash containing values that have to be expanded
+  #
   def self.substitute_dollar_symbols!(env)
-    env.merge!(ENV)
+    more_dollars = false
     resolved_dollar_vars = env.each_with_object(Hash.new) do |var, obj|
-      # expand all variables
+      # expand all variable patterns and try to match ENV or env
       pattern = /\$([a-zA-Z_]+[a-zA-Z0-9_]*)|\$\{(.+)\}/
-      obj[var[0]] = var[1].gsub(pattern) { env[$1||$2] }
+      obj[var[0]] = var[1].gsub(pattern) do
+        # if in ENV, use it
+        rv = ENV[$1||$2]
+        unless rv
+          # if not in ENV, use env, but only if not same as string we want to substitute
+          rv = env[$1||$2] if env[$1||$2] != var[1]
+        end
+        rv
+      end
+      # if still contains dollar symbol: recurse at end
+      more_dollars = true if obj[var[0]] =~ pattern
     end
     # overwrite old values with resolved values
     env.merge!(resolved_dollar_vars)
+
+    self.substitute_dollar_symbols!(env) if more_dollars
   end
 
 
